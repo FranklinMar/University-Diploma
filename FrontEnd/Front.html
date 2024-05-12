@@ -1,0 +1,274 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <!--<script type="module">
+    </script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js" integrity="sha512-yi5TwB0WBpzqlJXNLURNMtpFXJt4yxJhkOG8yqkVQYWhfMkAoDF93rZ/KjfoN1gADGr5uKXvr5/Bw6CC03YWpA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.umd.js" integrity="sha512-pTmcDhNR+JM1vnjTnpHy3OQeIL2fMeTmaKxi55J10WhHamlV7s0bQZbnnmHsAZeA8orWlGRJKd3epIIB+b6UVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.umd.min.js" integrity="sha512-NhCp4Gh5YWMVUudY8qPK2EUWcMHX15wqjL5S2nkR2HOuhWZ5Ts+KqTYw6Ks34CotLDtp04zBImAVScKGGU21Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
+    <script src="./cytoscape.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Roboto", sans-serif;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            :root {
+                scroll-behavior: smooth;
+            }
+        }
+
+        html {
+            max-width: 100vw;
+            max-height: 100vh;
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            max-height: 100%;
+            max-width: 100%;
+            height: 100%;
+            width: 100%
+        }
+        #cy {
+            width: 99.5%;
+            height: 99.5%;
+        }
+        #context-menu {
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(37, 40, 42, 0.22);
+            color: #1f194c;
+            width: 10em;
+            padding: 0.3em 0.2em;
+            font-size: 0.8rem;
+            position: fixed;
+            visibility: hidden;
+        }
+        .item {
+            padding: 0.3em 1.2em;
+        }
+        .item:hover {
+            background-color: rgba(44, 141, 247, 0.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="cy"></div>
+
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <div class="item" id="addNode">Add Node</div>
+        <div class="item" id="deleteNode" style="display: none">Delete Node</div>
+        <div class="item" id="addEdge" style="display: none">Add Edge</div>
+        <div class="item" id="deleteEdge" style="display: none">Delete Edge</div>
+    </div>
+    <!-- Context Menu -->
+
+    <script>
+        var Body = document.querySelector('body');
+        var ID = 0;
+        var IDEdge = 0;
+        var DivCy = document.getElementById('cy');
+        var Menu = document.getElementById("context-menu");
+        var MenuState = 0;
+
+        DivCy.addEventListener('contextmenu', function (event) {
+            event.preventDefault();
+            toggleMenuOn();
+            positionMenu(event);
+        });
+
+        // Event Listener for Close Context Menu when outside of menu clicked
+        document.addEventListener("click", (event) => {
+            var Button = event.which || event.button;
+            if (Button === 1) {
+                toggleMenuOff();
+            }
+        });
+
+        // Close Context Menu on Esc key press
+        window.onkeyup = function (event) {
+            if (event.keyCode === 27) {
+                toggleMenuOff();
+            }
+        }
+
+        // Turns the custom context Menu on.
+        function toggleMenuOn() {
+            if (MenuState !== 1) {
+                MenuState = 1;
+                Menu.style.visibility = "visible";
+            }
+        }
+        // Turns the custom context Menu off.
+        function toggleMenuOff() {
+            if (MenuState !== 0) {
+                MenuState = 0;
+                Menu.style.visibility = "hidden";
+            }
+        }
+        // Get the position of the right-click in window and returns the X and Y coordinates
+        function getPosition(event) {
+            var posx = 0;
+            var posy = 0;
+
+            if (!event) var e = window.event;
+
+            if (event.pageX || event.pageY) {
+                posx = event.pageX;
+                posy = event.pageY;
+            } else if (event.clientX || event.clientY) {
+                posx = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                posy = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+
+            return {
+                x: posx,
+                y: posy
+            };
+        }
+
+        // Position the Context Menu in right position.
+        function positionMenu(event) {
+            let clickCoords = getPosition(event);
+            //let clickCoordsX = clickCoords.x;
+            //let clickCoordsY = clickCoords.y;
+
+            let WindowWidth = window.innerWidth;
+            let WindowHeight = window.innerHeight;
+
+            let MenuWidth = Menu.offsetWidth + 4;
+            let MenuHeight = Menu.offsetHeight + 4;
+
+            if (WindowWidth - clickCoords.X < MenuWidth) {
+                Menu.style.left = WindowWidth - MenuWidth + "px";
+            } else {
+                Menu.style.left = clickCoords.X + "px";
+            }
+
+            if (WindowHeight - clickCoords.Y < MenuHeight) {
+                Menu.style.top = WindowHeight - MenuHeight + "px";
+            } else {
+                Menu.style.top = clickCoords.Y + "px";
+            }
+        }
+
+        var Cy = cytoscape({
+
+            container: DivCy, // Container to render in
+
+            elements: [ // List of graph elements to start with
+                { // Node A
+                    data: { id: ID++, label: 'a'}
+                },
+                { // Node B
+                    data: { id: ID++, label: 'b'}
+                },
+                { // Edge AB
+                    data: { id: IDEdge++, source: 'a', target: 'b' }
+                }
+            ],
+            style: [ // The stylesheet for the graph
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#666',
+                        'label': 'data(label)'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1,
+                        'line-color': '#000',
+                        'target-arrow-color': '#000',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier'
+                    }
+                }
+            ],
+            layout: {
+                name: 'grid',
+                rows: 1
+            }
+        });
+        //Cy.userPanningEnabled(false);
+        //Cy.userZoomingEnabled(true);
+        Cy.zoom({
+            level: 0.8,
+            //renderedPosition: { window.innerWidth / 2, window.innerHeight / 2 }
+        });
+        Cy.minZoom(0.8);
+        Cy.maxZoom(3);
+
+        var addNode = document.getElementById("addNode");
+        addNode.addEventListener('click', function (event) {
+            let WindowWidth = window.innerWidth;
+            let WindowHeight = window.innerHeight;
+
+            var Name = 'new';
+            var Position = getPosition(event);
+            var Width = 100;
+            var Height = 30;
+            Cy.add({
+                group: 'nodes',
+                data: { id: ID },
+                renderedPosition: Position
+            });
+            var NameInput = document.createElement("input");
+            NameInput.type = "text";
+            NameInput.width = Width + "px";
+            NameInput.height = Height + "px";
+            NameInput.value = Name;
+            NameInput.DataNode = ID++;
+            NameInput.style.position = "absolute";
+
+            if (WindowWidth - Position.x < MenuWidth) {
+                NameInput.style.left = WindowWidth - NameInput.offsetWidth + "px";
+            } else {
+                NameInput.style.left = Position.x + "px";
+            }
+            if (WindowHeight - clickCoordsY < MenuHeight) {
+                NameInput.style.top = WindowHeight - NameInput.offsetHeight - 10 + "px";
+            } else {
+                NameInput.style.top = Position.y - 10 + "px";
+            }
+            //NameInput.style.left = Position.x + "px";
+            //NameInput.style.top = Position.y - 10 + "px";
+            //NameInput.
+            NameInput.style.zIndex = 10;
+            Body.appendChild(NameInput);
+            /*NameInput.focus();
+            NameInput.onblur(function (event) {
+                NameInput.remove();
+            })*/
+        })
+        var deleteNode = document.getElementById("deleteNode");
+        var addEdge = document.getElementById("addEdge");
+        var deleteEdge = document.getElementById("deleteEdge");
+
+        Cy.on('mouseover', 'node', function (event) {
+            deleteNode.style.display = "revert";
+        });
+
+        Cy.on('mouseoff', 'node', function (event) {
+            deleteNode.style.display = "none";
+        });
+    </script>
+    <!--<script src="./graph.js"></script>
+    <script src="./contextMenu.js"></script>-->
+</body>
+</html>

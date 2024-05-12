@@ -8,9 +8,35 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Msagl" Version="1.1.6" />
-    <PackageReference Include="Microsoft.Msagl.Drawing" Version="1.1.6" />
-    <PackageReference Include="Microsoft.Msagl.GraphViewerGDI" Version="1.1.6" />
+    <PackageReference Include="AutomaticGraphLayout" Version="1.1.12" />
+    <PackageReference Include="AutomaticGraphLayout.Drawing" Version="1.1.12" />
+    <PackageReference Include="AutomaticGraphLayout.GraphViewerGDI" Version="1.1.12" />
+    <PackageReference Include="CefSharp.WinForms" Version="124.3.50" />
+    <PackageReference Include="CefSharp.WinForms.NETCore" Version="124.3.50" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FrontEnd\cytoscape.cjs.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\cytoscape.esm.min.mjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\cytoscape.esm.mjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\cytoscape.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\cytoscape.umd.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\Front.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FrontEnd\graph.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

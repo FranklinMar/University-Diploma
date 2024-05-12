@@ -50,12 +50,12 @@ namespace University_Diploma
             this.GraphViewer.BackColor = System.Drawing.Color.Transparent;
             this.GraphViewer.BackwardEnabled = false;
             this.GraphViewer.BuildHitTree = true;
-            this.GraphViewer.CurrentLayoutMethod = Microsoft.Msagl.GraphViewerGdi.LayoutMethod.UseSettingsOfTheGraph;
+            this.GraphViewer.CurrentLayoutMethod = Microsoft.Msagl.GraphViewerGdi.LayoutMethod.MDS;
             this.GraphViewer.EdgeInsertButtonVisible = true;
             this.GraphViewer.FileName = "";
             this.GraphViewer.ForwardEnabled = false;
             this.GraphViewer.Graph = null;
-            this.GraphViewer.IncrementalDraggingModeAlways = false;
+            //this.GraphViewer.IncrementalDraggingModeAlways = false;
             this.GraphViewer.InsertingEdge = false;
             this.GraphViewer.LayoutAlgorithmSettingsButtonVisible = true;
             this.GraphViewer.LayoutEditingEnabled = true;
@@ -92,26 +92,26 @@ namespace University_Diploma
             this.deleteNode,
             this.deleteEdge});
             this.MenuStrip.Name = "MenuStrip";
-            this.MenuStrip.Size = new System.Drawing.Size(181, 92);
+            this.MenuStrip.Size = new System.Drawing.Size(140, 70);
             // 
             // addNode
             // 
             this.addNode.Name = "addNode";
-            this.addNode.Size = new System.Drawing.Size(180, 22);
+            this.addNode.Size = new System.Drawing.Size(139, 22);
             this.addNode.Text = "Add Node";
             this.addNode.Click += new System.EventHandler(this.AddNodeClick);
             // 
             // deleteNode
             // 
             this.deleteNode.Name = "deleteNode";
-            this.deleteNode.Size = new System.Drawing.Size(180, 22);
+            this.deleteNode.Size = new System.Drawing.Size(139, 22);
             this.deleteNode.Text = "Delete Node";
             this.deleteNode.Click += new System.EventHandler(this.DeleteNodeClick);
             // 
             // deleteEdge
             // 
             this.deleteEdge.Name = "deleteEdge";
-            this.deleteEdge.Size = new System.Drawing.Size(180, 22);
+            this.deleteEdge.Size = new System.Drawing.Size(139, 22);
             this.deleteEdge.Text = "Delete Edge";
             this.deleteEdge.Visible = false;
             this.deleteEdge.Click += new System.EventHandler(this.DeleteEdgeClick);
