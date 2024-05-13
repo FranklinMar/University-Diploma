@@ -12,6 +12,7 @@ using System.Drawing;
 using CefSharp;
 using CefSharp.WinForms;
 using CefSharp.SchemeHandler;
+using CefSharp.DevTools.Autofill;
 //using Microsoft.Msagl.Drawing;
 
 namespace University_Diploma
@@ -27,6 +28,14 @@ namespace University_Diploma
             AllocConsole();
             Console.OutputEncoding = Encoding.UTF8;
         }*/
+        internal class ProxyController
+        {
+            //public ProxyController() { }
+            public void DisplayError(string message)
+            {
+                MessageBox.Show(message, "Error");
+            }
+        }
 
         public ModelForm()
         {
@@ -65,6 +74,7 @@ namespace University_Diploma
             Cef.Initialize(Settings);
             //Browser.JavascriptMessageReceived += ChromeBrowser_JavascriptMessageReceived;
             Browser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
+            Browser.JavascriptObjectRepository.Register("Proxy", new ProxyController(), options: BindingOptions.DefaultBinder);
             //Browser.JavascriptObjectRepository.Register("cefCustomObject", new CefCustomObject<Address>(chromium), options: BindingOptions.DefaultBinder);
             Browser.LoadingStateChanged += (sender, args) =>
             {

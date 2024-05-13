@@ -3,12 +3,13 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
     <!--<script type="module">
     </script>-->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js" integrity="sha512-yi5TwB0WBpzqlJXNLURNMtpFXJt4yxJhkOG8yqkVQYWhfMkAoDF93rZ/KjfoN1gADGr5uKXvr5/Bw6CC03YWpA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.umd.js" integrity="sha512-pTmcDhNR+JM1vnjTnpHy3OQeIL2fMeTmaKxi55J10WhHamlV7s0bQZbnnmHsAZeA8orWlGRJKd3epIIB+b6UVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.umd.min.js" integrity="sha512-NhCp4Gh5YWMVUudY8qPK2EUWcMHX15wqjL5S2nkR2HOuhWZ5Ts+KqTYw6Ks34CotLDtp04zBImAVScKGGU21Iw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
     <script src="./cytoscape.min.js"></script>
+    <script src="./cytoscape-context-menus.js"></script>
+    <script src="./lodash.js"></script>
+    <script src="./cytoscape-edgehandles.js"></script>
     <style>
         *,
         *::before,
@@ -42,233 +43,347 @@
             height: 100%;
             width: 100%
         }
+
         #cy {
             width: 99.5%;
             height: 99.5%;
         }
-        #context-menu {
+
+        .context-menu {
             background-color: #ffffff;
             box-shadow: 0 0 20px rgba(37, 40, 42, 0.22);
             color: #1f194c;
-            width: 10em;
+            width: 12em;
             padding: 0.3em 0.2em;
             font-size: 0.8rem;
-            position: fixed;
-            visibility: hidden;
+            display: flex;
+            /*position: fixed;
+            border: 1 solid #808080;
+            visibility: hidden;*/
         }
+
         .item {
+            display: flex;
             padding: 0.3em 1.2em;
+            background: inherit;
+            border: none;
+            width: 100%;
+            text-align: left;
         }
-        .item:hover {
-            background-color: rgba(44, 141, 247, 0.2);
-            cursor: pointer;
-        }
+
+            .item:hover {
+                background-color: rgba(44, 141, 247, 0.2);
+                cursor: pointer;
+            }
     </style>
 </head>
 <body>
     <div id="cy"></div>
-
-    <!-- Context Menu -->
-    <div id="context-menu">
-        <div class="item" id="addNode">Add Node</div>
-        <div class="item" id="deleteNode" style="display: none">Delete Node</div>
-        <div class="item" id="addEdge" style="display: none">Add Edge</div>
-        <div class="item" id="deleteEdge" style="display: none">Delete Edge</div>
-    </div>
-    <!-- Context Menu -->
-
     <script>
-        var Body = document.querySelector('body');
-        var ID = 0;
-        var IDEdge = 0;
-        var DivCy = document.getElementById('cy');
-        var Menu = document.getElementById("context-menu");
-        var MenuState = 0;
+var Body = document.querySelector('body');
+var ID = 0;
+var DivCy = document.getElementById('cy');
+var Cy;
+//const Unique = new Set();
 
-        DivCy.addEventListener('contextmenu', function (event) {
-            event.preventDefault();
-            toggleMenuOn();
-            positionMenu(event);
-        });
+document.addEventListener('DOMContentLoaded', function () {
 
-        // Event Listener for Close Context Menu when outside of menu clicked
-        document.addEventListener("click", (event) => {
-            var Button = event.which || event.button;
-            if (Button === 1) {
-                toggleMenuOff();
+    Cy = cytoscape({
+
+        container: DivCy, // Container to render in
+
+        elements: [ // List of graph elements to start with
+            { // Node A
+                data: { id: ID++, label: 'Front Pole', immutable: true }
+            },
+            { // Node B
+                data: { id: ID++, label: 'Back Pole', immutable: true }
+            },
+            { // Edge AB
+                data: { id: ID++, source: ID - 3, target: ID - 2 }
             }
-        });
-
-        // Close Context Menu on Esc key press
-        window.onkeyup = function (event) {
-            if (event.keyCode === 27) {
-                toggleMenuOff();
-            }
-        }
-
-        // Turns the custom context Menu on.
-        function toggleMenuOn() {
-            if (MenuState !== 1) {
-                MenuState = 1;
-                Menu.style.visibility = "visible";
-            }
-        }
-        // Turns the custom context Menu off.
-        function toggleMenuOff() {
-            if (MenuState !== 0) {
-                MenuState = 0;
-                Menu.style.visibility = "hidden";
-            }
-        }
-        // Get the position of the right-click in window and returns the X and Y coordinates
-        function getPosition(event) {
-            var posx = 0;
-            var posy = 0;
-
-            if (!event) var e = window.event;
-
-            if (event.pageX || event.pageY) {
-                posx = event.pageX;
-                posy = event.pageY;
-            } else if (event.clientX || event.clientY) {
-                posx = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-                posy = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-            }
-
-            return {
-                x: posx,
-                y: posy
-            };
-        }
-
-        // Position the Context Menu in right position.
-        function positionMenu(event) {
-            let clickCoords = getPosition(event);
-            //let clickCoordsX = clickCoords.x;
-            //let clickCoordsY = clickCoords.y;
-
-            let WindowWidth = window.innerWidth;
-            let WindowHeight = window.innerHeight;
-
-            let MenuWidth = Menu.offsetWidth + 4;
-            let MenuHeight = Menu.offsetHeight + 4;
-
-            if (WindowWidth - clickCoords.X < MenuWidth) {
-                Menu.style.left = WindowWidth - MenuWidth + "px";
-            } else {
-                Menu.style.left = clickCoords.X + "px";
-            }
-
-            if (WindowHeight - clickCoords.Y < MenuHeight) {
-                Menu.style.top = WindowHeight - MenuHeight + "px";
-            } else {
-                Menu.style.top = clickCoords.Y + "px";
-            }
-        }
-
-        var Cy = cytoscape({
-
-            container: DivCy, // Container to render in
-
-            elements: [ // List of graph elements to start with
-                { // Node A
-                    data: { id: ID++, label: 'a'}
-                },
-                { // Node B
-                    data: { id: ID++, label: 'b'}
-                },
-                { // Edge AB
-                    data: { id: IDEdge++, source: 'a', target: 'b' }
+        ],
+        style: [ // The stylesheet for the graph
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#666',
+                    'label': 'data(label)'
                 }
-            ],
-            style: [ // The stylesheet for the graph
-                {
-                    selector: 'node',
-                    style: {
-                        'background-color': '#666',
-                        'label': 'data(label)'
-                    }
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 1,
-                        'line-color': '#000',
-                        'target-arrow-color': '#000',
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier'
-                    }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1,
+                    'line-color': '#000',
+                    'target-arrow-color': '#000',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier'
                 }
-            ],
-            layout: {
-                name: 'grid',
-                rows: 1
+            },
+            {
+                selector: ':selected',
+                style: {
+                    "border-width": 2,
+                    "border-color": "rgb(1,105,217)"
+                }
             }
-        });
-        //Cy.userPanningEnabled(false);
-        //Cy.userZoomingEnabled(true);
-        Cy.zoom({
-            level: 0.8,
-            //renderedPosition: { window.innerWidth / 2, window.innerHeight / 2 }
-        });
-        Cy.minZoom(0.8);
-        Cy.maxZoom(3);
+        ],
+        layout: {
+            name: 'breadthfirst', //'concentric'
+            concentric: function (n) { return n.id() === 'j' ? 200 : 0; },
+            levelWidth: function (nodes) { return 100; },
+            minNodeSpacing: 100
+            //rows: 1
+        }
+    });
+    //Cy.userPanningEnabled(false);
+    //Cy.userZoomingEnabled(true);
+    Cy.pan(renderedPosition = { x: 0, y: 0 });
+    Cy.zoom({
+        level: 1,
+    });
+    Cy.minZoom(1);
+    Cy.maxZoom(3);
+    Cy.on('cxttap', function (event) {
+        if (AllSelected('node')) {
+            ContextMenu.hideMenuItem('select-all-nodes');
+            ContextMenu.showMenuItem('unselect-all-nodes');
+        } else {
+            ContextMenu.hideMenuItem('unselect-all-nodes');
+            ContextMenu.showMenuItem('select-all-nodes');
+        }
+        if (AllSelected('edge')) {
+            ContextMenu.hideMenuItem('select-all-edges');
+            ContextMenu.showMenuItem('unselect-all-edges');
+        } else {
+            ContextMenu.hideMenuItem('unselect-all-edges');
+            ContextMenu.showMenuItem('select-all-edges');
+        }
+    });
 
-        var addNode = document.getElementById("addNode");
-        addNode.addEventListener('click', function (event) {
-            let WindowWidth = window.innerWidth;
-            let WindowHeight = window.innerHeight;
+    var AllSelected = function (type) {
+        if (type == 'node') {
+            return Cy.nodes().length == Cy.nodes(':selected').length;
+        }
+        else if (type == 'edge') {
+            return Cy.edges().length == Cy.edges(':selected').length;
+        }
+        return false;
+    }
 
-            var Name = 'new';
-            var Position = getPosition(event);
-            var Width = 100;
-            var Height = 30;
-            Cy.add({
-                group: 'nodes',
-                data: { id: ID },
-                renderedPosition: Position
-            });
-            var NameInput = document.createElement("input");
-            NameInput.type = "text";
-            NameInput.width = Width + "px";
-            NameInput.height = Height + "px";
-            NameInput.value = Name;
-            NameInput.DataNode = ID++;
-            NameInput.style.position = "absolute";
+    var SelectAllOfTheSameType = function (type) {
+        if (type == 'node') {
+            Cy.nodes().select();
+        } else if (type == 'edge') {
+            Cy.edges().select();
+        }
+    };
+    var UnselectAllOfTheSameType = function (type) {
+        if (type == 'node') {
+            Cy.nodes().unselect();
+        } else if (type == 'edge') {
+            Cy.edges().unselect();
+        }
+    };
+    var EdgeHan = Cy.edgehandles({
+        snap: false
+    });
 
-            if (WindowWidth - Position.x < MenuWidth) {
-                NameInput.style.left = WindowWidth - NameInput.offsetWidth + "px";
+    /*var Enable = function() {
+        EdgeHan.enableDrawMode();
+    }
+
+    var Disable = function() {
+        EdgeHan.disableDrawMode();
+    }*/
+
+   
+    var ContextMenu = Cy.contextMenus({
+        menuItems: [
+            {
+                id: 'remove',
+                content: 'Remove',
+                //tooltipText: 'Remove element',
+                //image: { src: "assets/remove.svg", width: 12, height: 12, x: 6, y: 4 },
+                selector: 'node[^immutable], edge',
+                onClickFunction: function (event) {
+                    var target = event.target || event.cyTarget;
+                    removed = target.remove();
+
+                    ContextMenu.showMenuItem('undo-last-remove');
+                },
+                hasTrailingDivider: true
+            },
+            {
+                id: 'undo-last-remove',
+                content: 'Undo last remove',
+                selector: 'node, edge',
+                show: false,
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    if (removed) {
+                        removed.restore();
+                    }
+                    ContextMenu.hideMenuItem('undo-last-remove');
+                },
+                hasTrailingDivider: true
+            }, {
+                id: 'add-node',
+                content: 'Add node',
+                //tooltipText: 'Add new node',
+                //image: { src: "assets/add.svg", width: 12, height: 12, x: 6, y: 4 },
+                coreAsWell: true,
+                onClickFunction: function (event) {
+                    var Data = {
+                        group: 'nodes',
+                        id: ID
+                    };
+
+                    var Pos = event.position || event.cyPosition;
+
+                    Cy.add({
+                        data: Data,
+                        position: {
+                            x: Pos.x,
+                            y: Pos.y
+                        }
+                    });
+                    let WindowWidth = window.innerWidth;
+                    let WindowHeight = window.innerHeight;
+
+                    let Width = 50;
+                    let Height = 20;
+                    let NameInput = document.createElement("input");
+                    NameInput.type = "text";
+                    NameInput.style.width = Width + "px";
+                    NameInput.style.height = Height + "px";
+                    NameInput.DataNode = ID;
+                    NameInput.style.position = "absolute";
+
+                    if (WindowWidth - Pos.x < Width) {
+                        NameInput.style.left = (WindowWidth - Width) + "px";
+                    } else {
+                        NameInput.style.left = (Pos.x - Width / 2) + "px";
+                    }
+                    if (WindowHeight - Pos.y < Height) {
+                        NameInput.style.top = (WindowHeight - Height) + "px";
+                    } else {
+                        NameInput.style.top = (Pos.y - Height * 2) + "px";
+                    }
+                    NameInput.style.zIndex = 10;
+                    Body.appendChild(NameInput);
+                    NameInput.focus();
+                    NameInput.addEventListener('focusout', function (event) {
+                        if (NameInput.value === "") {
+                            Cy.remove(`#${ID}`);
+                        } else {
+                            Cy.getElementById(ID).attr('label', NameInput.value);
+                            ID++;
+                        }
+                        NameInput.remove();
+                    });
+                }
+            },
+            {
+                id: 'add-edge',
+                content: 'Add edge',
+                selector: 'node:hover',
+                //coreAsWell: true,
+                onClickFunction: function (event) {
+                    EdgeHan.start(event.target);
+                },
+                hasTrailingDivider: true
+            },
+            {
+                id: 'select-all-nodes',
+                content: 'Select nodes',
+                selector: 'node',
+                coreAsWell: true,
+                show: true,
+                onClickFunction: function (event) {
+                    SelectAllOfTheSameType('node');
+
+                    ContextMenu.hideMenuItem('select-all-nodes');
+                    ContextMenu.showMenuItem('unselect-all-nodes');
+                }
+            },
+            {
+                id: 'unselect-all-nodes',
+                content: 'Unselect nodes',
+                selector: 'node',
+                coreAsWell: true,
+                show: false,
+                onClickFunction: function (event) {
+                    UnselectAllOfTheSameType('node');
+
+                    ContextMenu.showMenuItem('select-all-nodes');
+                    ContextMenu.hideMenuItem('unselect-all-nodes');
+                }
+            },
+            {
+                id: 'select-all-edges',
+                content: 'Select edges',
+                selector: 'edge',
+                coreAsWell: true,
+                show: true,
+                onClickFunction: function (event) {
+                    SelectAllOfTheSameType('edge');
+
+                    ContextMenu.hideMenuItem('select-all-edges');
+                    ContextMenu.showMenuItem('unselect-all-edges');
+                }
+            },
+            {
+                id: 'unselect-all-edges',
+                content: 'Unselect edges',
+                selector: 'edge',
+                coreAsWell: true,
+                show: false,
+                onClickFunction: function (event) {
+                    UnselectAllOfTheSameType('edge');
+
+                    ContextMenu.showMenuItem('select-all-edges');
+                    ContextMenu.hideMenuItem('unselect-all-edges');
+                }
+            }
+        ],
+        menuItemClasses: [
+            'item'
+            // add class names to this list
+        ],
+        // css classes that context menu will have
+        contextMenuClasses: [
+            'context-menu'
+            // add class names to this list
+        ],
+    });
+    Cy.on('add', 'edge', function (event) {
+        for (let Value of Cy.edges('edge')) {
+            if (Value.data('source') === event.target.data('source') &&
+                Value.data('target') === event.target.data('target') &&
+                Value.data('id') !== event.target.data('id')) {
+                Cy.remove(`#${event.target.data('id')}`);
+                let Source = Cy.nodes(`#${Value.data('source')}`);
+                let Target = Cy.nodes(`#${Value.data('target')}`);
+                Proxy.displayError(`Edge with Source:(${Source.data('label')}) and Target:(${Target.data('label')}) already exists`);
+            }
+        }
+        
+        //let Edges = Cy.edges; //'node[souce = "Car"]';
+        //const UniqueElements = new Set();
+        //let filteredNodes = cy.nodes(query);
+        /*foreach(Edge => {
+            if (UniqueElements.has(Edge)) {
+                Proxy.DisplayError(`Edge with Source:(${Edge.source}) and Target:(${Edge.target}) already exists`);
+                //Duplicates.push(Edge);
+                Cy.remove(`#${Edge.id}`)
             } else {
-                NameInput.style.left = Position.x + "px";
+                UniqueElements.add(Edge);
             }
-            if (WindowHeight - clickCoordsY < MenuHeight) {
-                NameInput.style.top = WindowHeight - NameInput.offsetHeight - 10 + "px";
-            } else {
-                NameInput.style.top = Position.y - 10 + "px";
-            }
-            //NameInput.style.left = Position.x + "px";
-            //NameInput.style.top = Position.y - 10 + "px";
-            //NameInput.
-            NameInput.style.zIndex = 10;
-            Body.appendChild(NameInput);
-            /*NameInput.focus();
-            NameInput.onblur(function (event) {
-                NameInput.remove();
-            })*/
-        })
-        var deleteNode = document.getElementById("deleteNode");
-        var addEdge = document.getElementById("addEdge");
-        var deleteEdge = document.getElementById("deleteEdge");
-
-        Cy.on('mouseover', 'node', function (event) {
-            deleteNode.style.display = "revert";
-        });
-
-        Cy.on('mouseoff', 'node', function (event) {
-            deleteNode.style.display = "none";
-        });
-    </script>
-    <!--<script src="./graph.js"></script>
-    <script src="./contextMenu.js"></script>-->
+        });*/
+    });
+});
+</script>
 </body>
 </html>
