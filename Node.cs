@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace University_Diploma
 {
-    public class Node
+    public class Node: IComparable
     {
         public string ID { get; private set; }
         public string Label { get; set; } = null;
@@ -17,6 +17,22 @@ namespace University_Diploma
             ID = id;
             Label = label;
             //Pole = pole;
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (!(obj is Node))
+            {
+                return -1;
+            }
+            return 0;
+            /*Node Node = obj as Node;
+            int Result = ID.CompareTo(Node.ID);
+            if (Result != 0)
+            {
+                return Result;
+            }
+            return Label.CompareTo(Node.Label);*/
         }
     }
 }

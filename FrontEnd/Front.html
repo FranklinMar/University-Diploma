@@ -81,10 +81,13 @@
     <div id="cy"></div>
     <script>
 var Body = document.querySelector('body');
-var ID = 0;
+//var ID = 0;
+//var EdgeID = 0;
 var DivCy = document.getElementById('cy');
 var Cy;
 //const Unique = new Set();
+let Source = crypto.randomUUID();
+let Target = crypto.randomUUID();
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -93,15 +96,15 @@ document.addEventListener('DOMContentLoaded', function () {
         container: DivCy, // Container to render in
 
         elements: [ // List of graph elements to start with
-            /*{ // Node A
-                data: { id: ID++, label: 'Front Pole' } //, pole: true }
+            { // Node A
+                data: { id: Source, label: 'Front Pole' } //, pole: true }
             },
             { // Node B
-                data: { id: ID++, label: 'Back Pole' } //, pole: true }
+                data: { id: Target, label: 'Back Pole' } //, pole: true }
             },
             { // Edge AB
-                data: { id: ID++, source: ID - 3, target: ID - 2 }
-            }*/
+                data: { id: crypto.randomUUID(), source: Source, target: Target, label: 'hello' }
+            }
         ],
         style: [ // The stylesheet for the graph
             {
@@ -115,13 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 selector: 'edge',
                 style: {
                     'width': 1,
+                    'label': 'data(label)',
                     'line-color': '#000',
                     'source-arrow-color': '#000',
                     'target-arrow-color': '#000',
                     'source-arrow-shape': 'triangle-backcurve',
                     'target-arrow-shape': 'triangle-backcurve',
                     'curve-style': 'bezier'
-                }
+                },
             },
             {
                 selector: ':selected',
@@ -139,6 +143,8 @@ document.addEventListener('DOMContentLoaded', function () {
             //rows: 1
         }
     });
+    Cy.nodes().classes(['outline', 'top-left']);
+    Cy.edges().classes('top-left');
     //Cy.userPanningEnabled(false);
     //Cy.userZoomingEnabled(true);
     Cy.pan(renderedPosition = { x: 0, y: 0 });
@@ -199,7 +205,42 @@ document.addEventListener('DOMContentLoaded', function () {
     var Disable = function() {
         EdgeHan.disableDrawMode();
     }*/
+    function CreateInput(ID, Pos) {
+        let WindowWidth = window.innerWidth;
+        let WindowHeight = window.innerHeight;
 
+        let Width = 50;
+        let Height = 20;
+        let NameInput = document.createElement("input");
+        NameInput.type = "text";
+        NameInput.style.width = Width + "px";
+        NameInput.style.height = Height + "px";
+        NameInput.DataNode = ID;
+        NameInput.style.position = "absolute";
+
+        if (WindowWidth - Pos.x < Width) {
+            NameInput.style.left = (WindowWidth - Width) + "px";
+        } else {
+            NameInput.style.left = (Pos.x - Width / 2) + "px";
+        }
+        if (WindowHeight - Pos.y < Height) {
+            NameInput.style.top = (WindowHeight - Height) + "px";
+        } else {
+            NameInput.style.top = (Pos.y - Height * 2) + "px";
+        }
+        NameInput.style.zIndex = 10;
+        Body.appendChild(NameInput);
+        NameInput.focus();
+        NameInput.addEventListener('focusout', function (event) {
+            if (NameInput.value === "") {
+                Cy.remove(ID);
+            } else {
+                Cy.getElementById(ID).attr('label', NameInput.value);
+            }
+            NameInput.remove();
+        });
+        return NameInput;
+    }
    
     var ContextMenu = Cy.contextMenus({
         menuItems: [
@@ -237,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 //image: { src: "assets/add.svg", width: 12, height: 12, x: 6, y: 4 },
                 coreAsWell: true,
                 onClickFunction: function (event) {
+                    let ID = crypto.randomUUID();
                     var Data = {
                         //group: 'nodes',
                         id: ID
@@ -251,40 +293,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             y: Pos.y
                         }
                     });
-                    let WindowWidth = window.innerWidth;
-                    let WindowHeight = window.innerHeight;
 
-                    let Width = 50;
-                    let Height = 20;
-                    let NameInput = document.createElement("input");
-                    NameInput.type = "text";
-                    NameInput.style.width = Width + "px";
-                    NameInput.style.height = Height + "px";
-                    NameInput.DataNode = ID;
-                    NameInput.style.position = "absolute";
-
-                    if (WindowWidth - Pos.x < Width) {
-                        NameInput.style.left = (WindowWidth - Width) + "px";
-                    } else {
-                        NameInput.style.left = (Pos.x - Width / 2) + "px";
-                    }
-                    if (WindowHeight - Pos.y < Height) {
-                        NameInput.style.top = (WindowHeight - Height) + "px";
-                    } else {
-                        NameInput.style.top = (Pos.y - Height * 2) + "px";
-                    }
-                    NameInput.style.zIndex = 10;
-                    Body.appendChild(NameInput);
-                    NameInput.focus();
-                    NameInput.addEventListener('focusout', function (event) {
-                        if (NameInput.value === "") {
-                            Cy.remove(`#${ID}`);
-                        } else {
-                            Cy.getElementById(ID).attr('label', NameInput.value);
-                            ID++;
-                        }
-                        NameInput.remove();
-                    });
+                    CreateInput(ID, Pos);
                 }
             },
             {
@@ -293,7 +303,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 selector: 'node:hover',
                 //coreAsWell: true,
                 onClickFunction: function (event) {
+                    let ID = crypto.randomUUID();
                     EdgeHan.start(event.target);
+                    event.target.data('id', ID);
+
+                    var Pos = event.position || event.cyPosition;
+
+                    CreateInput(ID, Pos);
                 },
                 hasTrailingDivider: true
             },

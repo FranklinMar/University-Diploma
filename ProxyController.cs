@@ -9,7 +9,7 @@ namespace University_Diploma
     public delegate void Notify();
     public class ProxyController
     {
-        public UndirectedGraph<Node, Edge<Node>> Graph { get; private set; } = new();
+        public UndirectedGraph<Node, UndirectedEdge<Node>> Graph { get; private set; } = new();
         public event Notify GraphChanged;
 
         public ProxyController(Notify graphChanged/*out UndirectedGraph<Node, Edge<Node>> graph*/)
@@ -47,7 +47,14 @@ namespace University_Diploma
                 {
                     Node Source = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("source")));
                     Node Target = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("target")));
-                    Graph.AddEdge(new Edge<Node>(Source, Target));
+                    try
+                    {
+                        Graph.AddEdge(new UndirectedEdge<Node>(Source, Target));
+                    }
+                    catch (ArgumentException)
+                    {
+                        Graph.AddEdge(new UndirectedEdge<Node>(Target, Source));
+                    }
                     //Graph.AddEdge(new Edge<Node>(Target, Source));
                 }
                 catch (InvalidOperationException)

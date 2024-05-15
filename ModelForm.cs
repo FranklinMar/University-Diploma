@@ -149,26 +149,26 @@ namespace University_Diploma
             var Source = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(SourceBox.SelectedItem)).First();
             var Target = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(TargetBox.SelectedItem)).First();
             var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
-            var NodePaths = Handler.NodePaths;
-            Console.WriteLine("Edge paths");
-            foreach (List<Edge<Node>> Path in Paths)
+            var Cuts = Handler.AllMinCuts(Source, Target);
+            //var NodePaths = Handler.NodePaths;
+            /*Console.WriteLine("Edge paths");
+            foreach (List<UndirectedEdge<Node>> Path in Paths)
             {
-                Path.ForEach(Edge => Console.Write($"{Edge.Source.Label}->{Edge.Target.Label}|"));
+                Path.ForEach(Edge => Console.Write($"{Edge.Source.Label}---{Edge.Target.Label}|"));
                 Console.Write("\n");
-            }
+            }*/
             /*Console.WriteLine("Node Paths");
             foreach(List<Node> Path in NodePaths)
             {
                 Path.ForEach(Node => Console.Write($"{Node.Label}|"));
                 Console.Write("\n");
             }*/
-            var Cuts = Handler.AllMinCuts(Source, Target);
-            Console.WriteLine("\nMin cuts");
-            foreach(List<Edge<Node>> Cut in Cuts)
+            /*Console.WriteLine("\nMin cuts");
+            foreach(List<UndirectedEdge<Node>> Cut in Cuts)
             {
-                Cut.ForEach(Edge => Console.Write($"{Edge.Source.Label}->{Edge.Target.Label}|"));
+                Cut.ForEach(Edge => Console.Write($"{Edge.Source.Label}---{Edge.Target.Label}|"));
                 Console.Write("\n");
-            }
+            }*/
             //MessageBox.Show(Paths.ToString());
         }
 

@@ -11,19 +11,23 @@ namespace University_Diploma
 {
     public class GraphHandler
     {
+        
         // UndirectedGraph
         // UndirectedDepthFirstSearchAlgorithm
         // UndirectedVertexPredecessorRecorderObserver
-        public UndirectedGraph<Node, Edge<Node>> Graph { get; private set; }
+        public UndirectedGraph<Node, UndirectedEdge<Node>> Graph { get; private set; }
+        public Dictionary<UndirectedEdge<Node>, double> Probabilities;
         public readonly List<List<Node>> NodePaths = new();
-        private readonly List<List<Edge<Node>>> MinPaths = new();
-        private readonly List<List<Edge<Node>>> MinCuts = new();
-        private UndirectedDepthFirstSearchAlgorithm<Node, Edge<Node>> Algorithm;
-        private UndirectedVertexPredecessorRecorderObserver<Node, Edge<Node>> Observer;
+        private readonly List<List<UndirectedEdge<Node>>> MinPaths = new();
+        private readonly List<List<UndirectedEdge<Node>>> MinCuts = new();
+        //private UndirectedDepthFirstSearchAlgorithm<Node, UndirectedEdge<Node>> Algorithm;
+        //private UndirectedVertexPredecessorRecorderObserver<Node, UndirectedEdge<Node>> Observer;
+        private readonly Random Generator = new ();
 
-        public GraphHandler(UndirectedGraph<Node, Edge<Node>> graph)
+        public GraphHandler(UndirectedGraph<Node, UndirectedEdge<Node>> graph)
         {
             Graph = graph;
+            //Graph.Edges.ToList()[0].
         }
 
         /*public List<List<Node>> AllNodePaths(Node Source, Node Target)
@@ -89,9 +93,11 @@ namespace University_Diploma
                 }
             }
         }*/
-        public List<List<Edge<Node>>> AllMinPaths(Node Source, Node Target)
+
+        // Karger's Algorithm
+        public List<List<UndirectedEdge<Node>>> AllMinPaths(Node Source, Node Target)
         {
-            NodePaths.Clear();
+            //NodePaths.Clear();
             MinPaths.Clear();
             Queue <List<Node>> Queue = new();
 
@@ -105,15 +111,17 @@ namespace University_Diploma
                 if (Last == Target)
                 {
                     MinPaths.Add(PathNodeToEdge(Path));
-                    NodePaths.Add(new List<Node> (Path));
+                    //NodePaths.Add(new List<Node> (Path));
                 }
                 var Edges = Graph.AdjacentEdges(Last);
-                foreach(Edge<Node> Edge in Edges)
+                foreach(UndirectedEdge<Node> Edge in Edges)
                 {
-                    if (!Path.Contains(Edge.Target))
+                    if (/*(Edge.Source == Last && !Path.Contains(Edge.Target)) ||
+                        (Edge.Target == Last && !Path.Contains(Edge.Source))*/
+                        !Path.Contains(Edge.GetOtherVertex(Last)))
                     {
                         List<Node> New = new(Path);
-                        New.Add(Edge.Target);
+                        New.Add(/*Edge.Source == Last ? Edge.Target : Edge.Source*/Edge.GetOtherVertex(Last));
                         Queue.Enqueue(New);
                     }
                 }
@@ -121,13 +129,14 @@ namespace University_Diploma
             return MinPaths;
         }
 
-        public List<Edge<Node>> PathNodeToEdge(List<Node> Path)
+        public List<UndirectedEdge<Node>> PathNodeToEdge(List<Node> Path)
         {
-            List<Edge<Node>> New = new();
-            Edge<Node> Edge;
+            List<UndirectedEdge<Node>> New = new();
+            UndirectedEdge<Node> Edge;
             for (int i = 0; i < Path.Count - 1; i++)
             {
-                Edge = Graph.Edges.First(edge => edge.Source == Path[i] && edge.Target == Path[i + 1]);
+                Edge = Graph.Edges.First(edge => edge.UndirectedVertexEquality(Path[i], Path[i + 1])/*(edge.Source == Path[i] && edge.Target == Path[i + 1]) ||
+                    (edge.Target == Path[i] && edge.Source == Path[i + 1])*/);
                 New.Add(Edge);
             }
             return New;
@@ -139,16 +148,149 @@ namespace University_Diploma
             HashSet<Node> SeparateNodes = new();
             //return null;
         }*/
+        public List<List<UndirectedEdge<Node>>> AllMinCuts(Node Source, Node Target)
+        {
+            MinCuts.Clear();
+            //HashSet<Node> SourceSet = new();
+            List<List<UndirectedEdge<Node>>> Cuts = new();
+            //UndirectedGraph<Node, Edge<Node>> graph = Graph.Clone();
 
-        public List<List<Edge<Node>>> AllMinCuts(Node Source, Node Target)
+            //Node Current = Source;
+            //var Edges = graph.AdjacentEdges(Source);
+            //SourceSet.Add(Current);
+            /*Cuts.Add(graph.AdjacentEdges(CurrentSource).ToList());
+            while (graph.Vertices.Count() > 2)
+            {
+                //var Edges = AllEdges(graph, CurrentSource);
+                //Edge<Node> Edge = Edges[Generator.Next(0, Edges.Count)];
+                //graph.MergeVertex(Edge.Source == CurrentSource ? Edge.Target : Edge.Source, EdgeCreator);
+                var SourceEdges = graph.AdjacentEdges(CurrentSource);
+
+                Edge<Node> Edge;
+                do
+                {
+                    int RandomInt = Generator.Next(0, SourceEdges.Count());
+                    Edge = SourceEdges.ElementAt(RandomInt);
+                } while (Edge.Source == Target || Edge.Target == Target);
+                CurrentSource = MergeNodes(graph, CurrentSource, Edge.Source == Source ? Edge.Target : Edge.Source);
+                Cuts.Add(graph.AdjacentEdges(CurrentSource).ToList());
+            }*/
+            List<Node> CurrentSet = new() { Source };
+            List<UndirectedEdge<Node>> CurrentCut = new();
+            UndirectedEdge<Node> RandomEdge;
+            while (Graph.Vertices.Count() - CurrentSet.Count >= 2)
+            {
+                foreach (Node Node in CurrentSet)
+                {
+                    CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
+                }
+                Cuts.Add(CurrentCut);
+                List<UndirectedEdge<Node>> CutWithoutTarget = CurrentCut.Where(Edge => Edge.Source != Target && Edge.Target != Target).ToList();
+                int RandomInt = Generator.Next(0, CutWithoutTarget.Count);
+                RandomEdge = CutWithoutTarget.ElementAt(RandomInt);
+                CurrentSet.Add(CurrentSet.Contains(RandomEdge.Source) ? RandomEdge.Target : RandomEdge.Source);
+                CurrentCut = new();
+            }
+            foreach (Node Node in CurrentSet)
+            {
+                CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
+            }
+            Cuts.Add(CurrentCut);
+
+            /*foreach (List<Edge<Node>> Cut in Cuts)
+            {
+                //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
+                if (!Cuts.Any(OtherCut => IsSubset(Cut, OtherCut) && Cut != OtherCut))
+                {
+                    MinCuts.Add(Cut);
+                }
+            }*/
+            MinCuts.AddRange(Cuts);
+            /*List<List<Edge<Node>>> NewCuts = new();
+            foreach (List<Edge<Node>> Cut in Cuts)
+            {
+                //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
+                if (!Cuts.Any(OtherCut => IsSubset(Cut, OtherCut)))
+                {
+                    NewCuts.Add(Cut);
+                }
+            }
+            foreach (List<Edge<Node>> Cut in NewCuts)
+            {
+                List<Edge<Node>> NewCut = new();
+                foreach (Edge<Node> Edge in Cut)
+                {
+                    NewCut.Add(Graph.Edges.First(edge => EqualEdges(Edge, edge)));
+                }
+                MinCuts.Add(NewCut);
+            }*/
+            return MinCuts;
+        }
+
+        /*private *//*UndirectedGraph<Node, Edge<Node>>*//*Node MergeNodes(UndirectedGraph<Node, Edge<Node>> graph, Node Source, Node Merging)
+        {
+            List<Edge<Node>> SourceEdges = new();
+            graph.AdjacentEdges(Source).ToList().ForEach(Edge => SourceEdges.Add(new (Source, Edge.Source == Source ? Edge.Target : Edge.Source)));
+            List<Edge<Node>> MergingNodeEdges = new();
+            graph.AdjacentEdges(Merging).ToList().ForEach(Edge => MergingNodeEdges.Add(new(Merging, Edge.Source == Merging ? Edge.Target : Edge.Source)));
+            //graph.AdjacentEdges(Merging);
+            Node NewNode = new(Merging.ID*//*Guid.NewGuid().ToString("N")*//*, Source.Label);
+            //List<Node> AdjacentNodes = new();
+            *//*for (Edge<Node> Edge in SourceEdges)
+            {
+                if (Edge.Source !=)
+                //AdjacentNodes.Add()
+            }*//*
+            graph.RemoveVertex(Source);
+            graph.RemoveVertex(Merging);
+            graph.AddVertex(NewNode);
+            foreach (Edge<Node> Edge in SourceEdges)
+            {
+                if (Edge.Source != Source && Edge.Target != Merging*//* && Edge.Source != Merging && Edge.Target != Source*//*)
+                {
+                    graph.AddEdge(new Edge<Node>(NewNode, Edge.Target*//*, Edge.Source == Source ? Edge.Target : Edge.Source*//*));
+                }
+            }
+            foreach (Edge<Node> Edge in MergingNodeEdges)
+            {
+                if (Edge.Source != Merging && Edge.Target != Source*//* && Edge.Source != Merging && Edge.Target != Source*//*)
+                {
+                    graph.AddEdge(new Edge<Node>(NewNode, Edge.Target*//*, Edge.Source == Merging ? Edge.Target : Edge.Source*//*));
+                }
+            }
+            return NewNode;
+        }*/
+        private static bool IsSubset(List<UndirectedEdge<Node>> Set, List<UndirectedEdge<Node>> SubSet) =>
+            SubSet.All(SubEdge => Set.Any(Edge => Edge.UndirectedVertexEquality(SubEdge.Source, SubEdge.Target)));
+
+        /*private bool EqualEdges(UndirectedEdge<Node> Edge1, UndirectedEdge<Node> Edge2) =>
+            (Edge1.Source == Edge2.Source && Edge1.Target == Edge2.Target) ||
+            (Edge1.Source == Edge2.Target && Edge1.Target == Edge2.Source);*/
+        /*private List<Edge<Node>> AllEdges(BidirectionalGraph<Node, Edge<Node>> graph, Node node)
+        {
+            var Result = graph.InEdges(node).ToList();
+            Result.AddRange(graph.OutEdges(node));
+            return Result;
+        }*/
+
+        /*public List<List<Edge<Node>>> AllMinCuts(Node Source, Node Target)
         {
             MinCuts.Clear();
             FindMinCuts(Graph.Clone(), Source, Target, new List<Edge<Node>>());
             var Cuts = MinCuts.OrderBy(Cut => Cut.Count).ToArray();
             var OtherCuts = MinCuts.ToArray();
+            MinCuts.Clear();
             foreach (List<Edge<Node>> Cut in Cuts)
             {
-                foreach(List<Edge<Node>> OtherCut in OtherCuts)
+                //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
+                if (!Cuts.Any(OtherCut => IsSubset(Cut, OtherCut)))
+                {
+                    MinCuts.Add(Cut);
+                }
+            }
+            *//*foreach (List<Edge<Node>> Cut in Cuts)
+            {
+                foreach (List<Edge<Node>> OtherCut in OtherCuts)
                 {
                     // If a cut isn't the same, and contains all edges of a small cut
                     // Delete this cut form the list
@@ -157,7 +299,7 @@ namespace University_Diploma
                         MinCuts.Remove(OtherCut);
                     }
                 }
-            }
+            }*//*
             return MinCuts;
         }
 
@@ -170,7 +312,7 @@ namespace University_Diploma
             Algorithm.Compute(Source);
             if (!Observer.TryGetPath(Target, out _))
             {
-                MinCuts.Add(new List<Edge<Node>> (Cut));
+                MinCuts.Add(new List<Edge<Node>>(Cut));
                 return;
             }
             var Edges = graph.Edges.ToArray();
@@ -184,6 +326,6 @@ namespace University_Diploma
                     graph.AddEdge(edge);
                 }
             }
-        }
+        }*/
     }
 }
