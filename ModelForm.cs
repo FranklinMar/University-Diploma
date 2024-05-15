@@ -6,62 +6,50 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 using CefSharp;
 using CefSharp.WinForms;
 using CefSharp.SchemeHandler;
-using CefSharp.DevTools.Autofill;
+using QuikGraph;
 //using Microsoft.Msagl.Drawing;
 
 namespace University_Diploma
 {
     public partial class ModelForm : Form
     {
+        // UndirectedGraph<Node, Edge<Node>> Graph;
+        private ProxyController Proxy;
+        private GraphHandler Handler;
+        //private readonly List<List<Node>> NodePaths;
+        //private readonly List<List<Edge<Node>>> EdgePaths;
 
-        /*[DllImport("kernel32.dll", SetLastError = true)]
+        private void SelectionChanged(object sender, EventArgs e)
+        {
+            CalcButton.Enabled = (SourceBox.SelectedItem != TargetBox.SelectedItem && 
+                SourceBox.SelectedItem != null && TargetBox.SelectedItem != null);
+        }
+
+        //private bool IsLoading = true;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool AllocConsole();
-        public static void AllocateConsole()
+        private static extern bool AllocConsole();
+        private static void AllocateConsole()
         {
             AllocConsole();
             Console.OutputEncoding = Encoding.UTF8;
-        }*/
-        internal class ProxyController
-        {
-            //public ProxyController() { }
-            public void DisplayError(string message)
-            {
-                MessageBox.Show(message, "Error");
-            }
         }
 
         public ModelForm()
         {
-            //AllocateConsole();
+            AllocateConsole();
             InitializeComponent();
-            InitializeBrowser();
-            //deleteEdge.Visible = false;
-            //KeyDown += new KeyEventHandler(OnKeyDown);
-            //KeyUp += new KeyEventHandler(OnKeyUp);
-            //Browser.FrameLoadEnd
-        }
-
-        private bool IsLoading = true;
-
-        /*public static uint ColorToUInt(Color color)
-        {
-            return (uint)((color.A << 24) | (color.R << 16) | (color.G << 8) | (color.B << 0));
-        }*/
-
-        private void InitializeBrowser()
-        {
+            Proxy = new(OnGraphChanged/*out Graph*/);
+            Handler = new(Proxy.Graph);
             string Domain = "modelling";
             string Scheme = "resources";
-            //string HTML;
-            CefSettings Settings = new ();
-            //Settings.BackgroundColor = ColorToUInt(Color.FromArgb(0, 0, 16));
+            CefSettings Settings = new();
             Settings.RegisterScheme(new CefCustomScheme
             {
                 SchemeName = Scheme,
@@ -74,206 +62,124 @@ namespace University_Diploma
             Cef.Initialize(Settings);
             //Browser.JavascriptMessageReceived += ChromeBrowser_JavascriptMessageReceived;
             Browser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
-            Browser.JavascriptObjectRepository.Register("Proxy", new ProxyController(), options: BindingOptions.DefaultBinder);
-            //Browser.JavascriptObjectRepository.Register("cefCustomObject", new CefCustomObject<Address>(chromium), options: BindingOptions.DefaultBinder);
-            Browser.LoadingStateChanged += (sender, args) =>
+            Browser.JavascriptObjectRepository.Register("Proxy", Proxy, options: BindingOptions.DefaultBinder);
+            /*Browser.LoadingStateChanged += (sender, args) =>
             {
                 IsLoading = args.IsLoading;
-            };
-            //HTML = File.ReadAllText(@"./FrontEnd/Front.html");
+            };*/
             /*Browser.ConsoleMessage += (sender, e) => {
                 Console.WriteLine($"{e.Source}: {e.Message}");
             };*/
             Browser.Load($"{Scheme}://{Domain}/");
-            //Browser.
-            //Browser.LoadHtml(HTML);
             //Browser.Dock = DockStyle.Fill;
-            //Browser.LoadHtml(HTML, )
-            //Browser.EvaluateScriptAsync(File.ReadAllText(@"./FrontEnd/graph.js"));
         }
 
-        private void Loaded(object sender, LoadingStateChangedEventArgs e)
+        private void PageLoaded(object sender, LoadingStateChangedEventArgs e)
         {
             Browser.ShowDevTools();
+            /*if (SourceBox.Items.Count != 0)
+                SourceBox.Items.Clear();
+            SourceBox.Items.AddRange(Graph.Vertices.ToArray());
+            //SourceBox.SelectedIndex = null;
+
+            if (TargetBox.Items.Count != 0)
+                TargetBox.Items.Clear();
+            TargetBox.Items.AddRange(Graph.Vertices.ToArray());*/
         }
-    }
 
-    #region old
-    /*void ViewerLoaded(object sender, EventArgs e)
-    {
-        Graph Graph = new("Graph");
-        Node Node = Graph.AddNode("FrontPole");
-        Node.Attr.Color = Color.Green;
-        Node = Graph.AddNode("BackPole");
-        Node.Attr.Color = Color.Green;
-        //Graph.Attr.MinimalHeight = GViewer.Height;
-        //Graph.Attr.MinimalWidth = GViewer.Width;
-        //GViewer.Edge
-        GViewer.Graph = Graph;
-        //GViewer.GraphWithLayout = Graph;
-        //GViewer.FitGraphBoundingBox();
-        //GViewer.Graph.GeometryGraph.BoundingBox = new Rectangle(0, 0, GViewer.Width, GViewer.Height);
-        GViewer.Click += new EventHandler(ViewerClick);
-        //GViewer.EdgeAdded += ViewerEdgeAdded;
-        //GViewer.GraphChanged += GraphChange;
-        GViewer.EdgeAdded += new EventHandler(GraphChange);
-        //edgeRouter_ = new InteractiveEdgeRouter(GViewer.Nodes.Select(n => n.BoundaryCurve), 3, 0.65 * 3, 0);
-        //GViewer.ZoomF
-        GViewer.AsyncLayout = true;
-        //GViewer.NeedToCalculateLayout = false;
-    }
-
-    void ViewerClick(object sender, EventArgs e)
-    {
-        MouseEventArgs me = (MouseEventArgs)e;
-
-        if (me.Button == System.Windows.Forms.MouseButtons.Right)
+        private void OnGraphChanged()
         {
-            *//*if (GViewer.SelectedObject != null)
+            string[] Nodes = Handler.Graph.Vertices.Select(Node => Node.Label).ToArray();
+            //if (SourceBox.Items.Count != 0)
+            if (SourceBox.InvokeRequired)
             {
-                deleteNode.Visible = false;
-                //MenuStrip.Items.Find("deleteNode", true).First().Visible = false;
-            }*//*
-            if (GViewer.SelectedObject == null)
-            {
-                deleteNode.Visible = false;
-            }
-            else
-            {
-
-                if (GViewer.SelectedObject is Node)
-                {
-                    //MessageBox.Show(GViewer.SelectedObject.GetType().ToString());
-                    Node Node = (Node)GViewer.SelectedObject;
-                    if (Node.Id == "FrontPole" || Node.Id == "BackPole")
+                SourceBox.Invoke(new MethodInvoker(delegate {
+                    SourceBox.Items.Clear();
+                    SourceBox.Items.AddRange(Nodes);
+                    if (SourceBox.Items.Count != 0)
                     {
-                        deleteNode.Visible = false;
-                    }
-                    else
+                        SourceBox.Enabled = true;
+                        int Index = SourceBox.Items.IndexOf(SourceBox.Text);
+                        if (Index != -1)
+                        {
+                            SourceBox.SelectedIndex = Index;
+                            SourceBox.SelectedItem = SourceBox.Items[Index];
+                        } else
+                        {
+                            SourceBox.Text = "";
+                        }
+                    } else 
                     {
-                        deleteNode.Visible = true;
+                        SourceBox.Enabled = false;
+                        SourceBox.Text = "";
                     }
-                }
-                //deleteEdge.Visible = (GViewer.SelectedObject is Edge) ? true : false;
+                }));
             }
-            MenuStrip.Show(MousePosition);
-        }
-    }
+            //SourceBox.SelectedIndex = null;
 
-    private void AddNodeClick(object sender, EventArgs e)
-    {
-        string PromptResult = Prompt.ShowDialog("Please insert a name for the node", "Name");
-        //GViewer.NeedToCalculateLayout = false;
-        if (string.IsNullOrWhiteSpace(PromptResult))
-        {
-            return;
-        }
-        Graph Graph = GViewer.GraphWithLayout;
-        if (GViewer.ObjectUnderMouseCursor != null)
-        {
-            GViewer.Graph = null;
-
-            *//*Node Node = *//*
-            if (Graph.NodeMap[PromptResult.Trim()] != null)
+            //if (TargetBox.Items.Count != 0)
+            if (TargetBox.InvokeRequired)
             {
-                MessageBox.Show("Node already exists");
+                TargetBox.Invoke(new MethodInvoker(delegate {
+                    TargetBox.Items.Clear();
+                    TargetBox.Items.AddRange(Nodes);
+                    if (TargetBox.Items.Count != 0)
+                    {
+                        TargetBox.Enabled = true;
+                        int Index = TargetBox.Items.IndexOf(TargetBox.Text);
+                        if (Index != -1)
+                        {
+                            TargetBox.SelectedIndex = Index;
+                            TargetBox.SelectedItem = TargetBox.Items[Index];
+                        }
+                        else
+                        {
+                            TargetBox.Text = "";
+                        }
+                    } else {
+                        TargetBox.Enabled = false;
+                        TargetBox.Text = "";
+                    }
+                }));
             }
-            Graph.AddNode(PromptResult); //gViewer1.Graph.FindNode($"{Index}");
-                                         //ToolStripMenuItem Item = (ToolStripMenuItem)sender;
-                                         //MessageBox.Show(sender.GetType().ToString());
-                                         //MessageBox.Show(e.GetType().ToString());
-                                         //Node.GeometryNode = new Geomr();
-                                         //GViewer.NeedToCalculateLayout = false;
-                                         //GViewer.NeedToCalculateLayout = true;
-            GViewer.Graph = Graph;
-            //GViewer.NeedToCalculateLayout = true;
-            //gViewer1.Graph.GeometryGraph = Graph.GeometryGraph;
-            //GViewer.Update();
-            GViewer.Refresh();
-            //GViewer.NeedToCalculateLayout = false;
-            //gViewer1.Graph. = 10; new Size(gViewer1.Width, gViewer1.Height);
-            //Item.
-            *//*Point Canvas = GViewer.Graph.BoundingBox.LeftTop;
-            Node Node = GViewer.Graph.FindNode($"{Index}");
-            Node.GeometryNode.Center = new Point(MousePosition.X + Canvas.X, MousePosition.Y + Canvas.Y);*//*
-            //++Index;
-            //gViewer1.NeedToCalculateLayout = true;
         }
-    }
 
-    private void DeleteNodeClick(object sender, EventArgs e)
-    {
-        Graph Graph = GViewer.GraphWithLayout;
-        Node Node = (Node)GViewer.SelectedObject;
-        Graph.RemoveNode(Node);
-        GViewer.Graph = Graph;
-        //GViewer.RemoveNode((IViewerNode) GViewer.SelectedObject, true);
-    }
-
-    private void DeleteEdgeClick(object sender, EventArgs e)
-    {
-        Graph Graph = GViewer.GraphWithLayout;
-        Edge Edge = (Edge)GViewer.SelectedObject;
-        Graph.RemoveEdge(Edge);
-        GViewer.Graph = Graph;
-    }
-
-    private void ViewerEdgeAdded(object sender, EventArgs e)
-    {
-        //MessageBox.Show(sender.GetType().FullName);
-        MessageBox.Show(GViewer.SelectedObject.GetType().FullName);
-        Graph Graph = GViewer.GraphWithLayout;
-        Edge Edge = (Edge)sender;
-        // If Edge already exists
-        foreach (Edge edge in (from edge in Graph.Edges
-                               where
-         (edge.Source == Edge.Source && edge.Target == Edge.Target) ||
-         (edge.Source == edge.Target && edge.Target == edge.Source)
-                               select edge))
+        private void CalcClick(object sender, EventArgs e)
         {
-            MessageBox.Show($"{edge.Source}|{edge.Target}");
-        }
-        if ((from edge in Graph.Edges
-             where
-(edge.Source == Edge.Source && edge.Target == Edge.Target) ||
-(edge.Source == edge.Target && edge.Target == edge.Source)
-             select edge).Count() > 1)
-        {
-            //GViewer.RemoveEdge(GViewer.Edge);
-            MessageBox.Show($"Edge already exists", "Error");
-        }
-        else
-        {
-            Graph.AddEdge(Edge.Target, Edge.Source);
-        }
-        GViewer.Graph = Graph;
-        GViewer.Refresh();
-    }
-
-    private void GraphChange(object sender, EventArgs e)
-    {
-        //MessageBox.Show(sender.GetType().FullName);
-        //var EdgeGroups = //GViewer.Graph.Edges.GroupBy(Edge => (Edge.Source, Edge.Target));
-        //EdgeGroups.Select(Pair => Pair.)
-        Graph Graph = GViewer.Graph;
-        var EdgeNonDistinct = from Edge in Graph.Edges
-                              group (Edge.Source, Edge.Target) by (Edge.Source, Edge.Target)
-                              into Grouped
-                              where Grouped.Count() > 1
-                              select Grouped.Key;
-        //foreach ()
-        if (GViewer.ObjectUnderMouseCursor != null)
-        {
-            GViewer.Graph = null;
-
-            foreach (var Edge in EdgeNonDistinct)
+            var Source = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(SourceBox.SelectedItem)).First();
+            var Target = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(TargetBox.SelectedItem)).First();
+            var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
+            var NodePaths = Handler.NodePaths;
+            Console.WriteLine("Edge paths");
+            foreach (List<Edge<Node>> Path in Paths)
             {
-                MessageBox.Show($"Edge (\"{Edge.Source}\" -> \"{Edge.Target}\") already exists.");
-                Graph.RemoveEdge(Graph.Edges.First(edge => (edge.Source == Edge.Source && edge.Target == Edge.Target)));
+                Path.ForEach(Edge => Console.Write($"{Edge.Source.Label}->{Edge.Target.Label}|"));
+                Console.Write("\n");
             }
-            GViewer.Graph = Graph;
+            /*Console.WriteLine("Node Paths");
+            foreach(List<Node> Path in NodePaths)
+            {
+                Path.ForEach(Node => Console.Write($"{Node.Label}|"));
+                Console.Write("\n");
+            }*/
+            var Cuts = Handler.AllMinCuts(Source, Target);
+            Console.WriteLine("\nMin cuts");
+            foreach(List<Edge<Node>> Cut in Cuts)
+            {
+                Cut.ForEach(Edge => Console.Write($"{Edge.Source.Label}->{Edge.Target.Label}|"));
+                Console.Write("\n");
+            }
+            //MessageBox.Show(Paths.ToString());
         }
-        //from Edge in GViewer.Graph.Edgs group Edge by Edge
-    }*/
-    #endregion
+
+        /*public static uint ColorToUInt(Color color)
+        {
+            return (uint)((color.A << 24) | (color.R << 16) | (color.G << 8) | (color.B << 0));
+        }*/
+
+        /*private void InitializeBrowser()
+        {
+            
+        }*/
+    }
 }

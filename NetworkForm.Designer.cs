@@ -1,4 +1,4 @@
-﻿
+﻿/*
 namespace University_Diploma
 {
     partial class NetworkForm
@@ -143,4 +143,4 @@ namespace University_Diploma
         private System.Windows.Forms.ToolStripMenuItem deleteEdgeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteEdge;
     }
-}
+}*/

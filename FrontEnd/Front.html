@@ -93,15 +93,15 @@ document.addEventListener('DOMContentLoaded', function () {
         container: DivCy, // Container to render in
 
         elements: [ // List of graph elements to start with
-            { // Node A
-                data: { id: ID++, label: 'Front Pole', immutable: true }
+            /*{ // Node A
+                data: { id: ID++, label: 'Front Pole' } //, pole: true }
             },
             { // Node B
-                data: { id: ID++, label: 'Back Pole', immutable: true }
+                data: { id: ID++, label: 'Back Pole' } //, pole: true }
             },
             { // Edge AB
                 data: { id: ID++, source: ID - 3, target: ID - 2 }
-            }
+            }*/
         ],
         style: [ // The stylesheet for the graph
             {
@@ -116,8 +116,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 style: {
                     'width': 1,
                     'line-color': '#000',
+                    'source-arrow-color': '#000',
                     'target-arrow-color': '#000',
-                    'target-arrow-shape': 'triangle',
+                    'source-arrow-shape': 'triangle-backcurve',
+                    'target-arrow-shape': 'triangle-backcurve',
                     'curve-style': 'bezier'
                 }
             },
@@ -206,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 content: 'Remove',
                 //tooltipText: 'Remove element',
                 //image: { src: "assets/remove.svg", width: 12, height: 12, x: 6, y: 4 },
-                selector: 'node[^immutable], edge',
+                selector: 'node, edge',//'node[^pole], edge',
                 onClickFunction: function (event) {
                     var target = event.target || event.cyTarget;
                     removed = target.remove();
@@ -236,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 coreAsWell: true,
                 onClickFunction: function (event) {
                     var Data = {
-                        group: 'nodes',
+                        //group: 'nodes',
                         id: ID
                     };
 
@@ -383,6 +385,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });*/
     });
+    Cy.on('add remove data', 'node, edge', function () {
+        let Result = {};
+        Result['nodes'] = [];
+        Result['edges'] = [];
+        let Elements = Cy.json().elements;
+        let Nodes = Elements.nodes;
+        if (Nodes !== null && Nodes !== undefined) {
+            for (let Node of Elements.nodes) {
+                Result['nodes'].push(Node.data);
+            }
+        }
+        let Edges = Elements.edges;
+        if (Edges !== null && Edges !== undefined) {
+            for (let Edge of Elements.edges) {
+                Result['edges'].push(Edge.data);
+            }
+        }
+        console.log(Result);
+        Proxy.recieveGraph(JSON.stringify(Result));
+    });
+    //Proxy.recieveGraph(`${{ "1": 1}}`);
+    //console.log(Cy.data());
 });
 </script>
 </body>
