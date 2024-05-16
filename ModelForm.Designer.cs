@@ -73,11 +73,12 @@ namespace University_Diploma
             // 
             this.ImportButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.ImportButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.ImportButton.Enabled = false;
             this.ImportButton.Location = new System.Drawing.Point(20, 575);
             this.ImportButton.Name = "ImportButton";
             this.ImportButton.Size = new System.Drawing.Size(151, 29);
             this.ImportButton.TabIndex = 6;
-            this.ImportButton.Text = "Import Button";
+            this.ImportButton.Text = "Import Graph";
             this.ImportButton.UseVisualStyleBackColor = false;
             this.ImportButton.Click += new System.EventHandler(this.ImportClick);
             // 
@@ -89,7 +90,7 @@ namespace University_Diploma
             this.ExportButton.Name = "ExportButton";
             this.ExportButton.Size = new System.Drawing.Size(151, 29);
             this.ExportButton.TabIndex = 5;
-            this.ExportButton.Text = "Export Button";
+            this.ExportButton.Text = "Export Graph";
             this.ExportButton.UseVisualStyleBackColor = false;
             this.ExportButton.Click += new System.EventHandler(this.ExportClick);
             // 
@@ -98,7 +99,7 @@ namespace University_Diploma
             this.CalcButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.CalcButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.CalcButton.Enabled = false;
-            this.CalcButton.Location = new System.Drawing.Point(20, 159);
+            this.CalcButton.Location = new System.Drawing.Point(20, 116);
             this.CalcButton.Name = "CalcButton";
             this.CalcButton.Size = new System.Drawing.Size(151, 29);
             this.CalcButton.TabIndex = 4;
@@ -110,7 +111,7 @@ namespace University_Diploma
             // 
             this.TargetBox.Enabled = false;
             this.TargetBox.FormattingEnabled = true;
-            this.TargetBox.Location = new System.Drawing.Point(20, 126);
+            this.TargetBox.Location = new System.Drawing.Point(20, 83);
             this.TargetBox.Name = "TargetBox";
             this.TargetBox.Size = new System.Drawing.Size(151, 23);
             this.TargetBox.TabIndex = 3;
@@ -119,7 +120,7 @@ namespace University_Diploma
             // TargetLabel
             // 
             this.TargetLabel.AutoSize = true;
-            this.TargetLabel.Location = new System.Drawing.Point(20, 103);
+            this.TargetLabel.Location = new System.Drawing.Point(20, 60);
             this.TargetLabel.Name = "TargetLabel";
             this.TargetLabel.Size = new System.Drawing.Size(79, 15);
             this.TargetLabel.TabIndex = 2;
@@ -129,7 +130,7 @@ namespace University_Diploma
             // 
             this.SourceBox.Enabled = false;
             this.SourceBox.FormattingEnabled = true;
-            this.SourceBox.Location = new System.Drawing.Point(20, 73);
+            this.SourceBox.Location = new System.Drawing.Point(20, 30);
             this.SourceBox.Name = "SourceBox";
             this.SourceBox.Size = new System.Drawing.Size(151, 23);
             this.SourceBox.TabIndex = 1;
@@ -138,7 +139,7 @@ namespace University_Diploma
             // SourceLabel
             // 
             this.SourceLabel.AutoSize = true;
-            this.SourceLabel.Location = new System.Drawing.Point(20, 50);
+            this.SourceLabel.Location = new System.Drawing.Point(20, 7);
             this.SourceLabel.Name = "SourceLabel";
             this.SourceLabel.Size = new System.Drawing.Size(83, 15);
             this.SourceLabel.TabIndex = 0;

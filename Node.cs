@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace University_Diploma
 {
+    [Serializable]
     public class Node: IComparable
     {
+        [XmlAttribute("id")]
         public string ID { get; private set; }
-        public string Label { get; set; } = null;
+        [XmlAttribute("label")]
+        public string Label { get; set; }
         //public bool Pole { get; private set; }// = false;
 
         public Node(string id, string label/*, bool pole = false*/)

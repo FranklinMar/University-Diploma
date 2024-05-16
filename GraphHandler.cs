@@ -33,37 +33,6 @@ namespace University_Diploma
             //Graph.Edges.ToList()[0].
         }
 
-        public void EzariProshanAccount(Node Source, Node Target)
-        {
-            AllMinPaths(Source, Target);
-            AllMinCuts(Source, Target);
-            double LowerLimit = 1;
-            double UpperLimit = 1;
-            double MultiplyProbabilities;
-            // П_(1<=k<=N) (1 - П_(i in B) (q_i))
-            foreach(var Cut in MinCuts)
-            {
-                MultiplyProbabilities = 1;
-                foreach(GraphEdge Edge in Cut)
-                {
-                    MultiplyProbabilities *= (1 - Edge.Probability/*Probabilities[Edge]*/);
-                }
-                LowerLimit *= (1 - MultiplyProbabilities);
-            }
-            // 1 - П_(1<=j<=M) (1 - П_(i in A) (p_i))
-            foreach (var Path in MinPaths)
-            {
-                MultiplyProbabilities = 1;
-                foreach(GraphEdge Edge in Path)
-                {
-                    MultiplyProbabilities *= Edge.Probability;//Probabilities[Edge];
-                }
-                UpperLimit *= (1 - MultiplyProbabilities);
-            }
-            UpperLimit = 1 - UpperLimit;
-            MessageBox.Show($"{LowerLimit} <= M Ф (X) <= {UpperLimit}", "Calculations complete!");
-        }
-
         /*public List<List<Node>> AllNodePaths(Node Source, Node Target)
         {
             NodePaths.Clear();
@@ -130,8 +99,8 @@ namespace University_Diploma
 
         public List<List<GraphEdge>> AllMinPaths(Node Source, Node Target)
         {
-            //NodePaths.Clear();
             MinPaths.Clear();
+            NodePaths.Clear();
             Queue <List<Node>> Queue = new();
 
             List<Node> Path = new();
@@ -144,7 +113,7 @@ namespace University_Diploma
                 if (Last == Target)
                 {
                     MinPaths.Add(PathNodeToEdge(Path));
-                    //NodePaths.Add(new List<Node> (Path));
+                    NodePaths.Add(new List<Node> (Path));
                 }
                 var Edges = Graph.AdjacentEdges(Last);
                 foreach(GraphEdge Edge in Edges)
@@ -437,15 +406,15 @@ namespace University_Diploma
             }
         }*/
     }
-}
 
-public static class ListExtensions
-{
-    public static void AddUnique<T>(this List<List<T>> list, List<T> item)
+    public static class ListExtensions
     {
-        if (list.All(innerList => !innerList.All(obj => item.Contains(obj, EqualityComparer<T>.Default))))
+        public static void AddUnique<T>(this List<List<T>> list, List<T> item)
         {
-            list.Add(item);
+            if (list.All(innerList => !innerList.All(obj => item.Contains(obj, EqualityComparer<T>.Default))))
+            {
+                list.Add(item);
+            }
         }
     }
 }

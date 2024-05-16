@@ -8,10 +8,11 @@ using System.Xml.Serialization;
 
 namespace University_Diploma
 {
+    [Serializable]
     public class GraphEdge: UndirectedEdge<Node>
     {
-        [XmlAttribute("probability")]
         private double _probability;
+        [XmlAttribute("probability")]
         public double Probability { 
             get {
                 return _probability;

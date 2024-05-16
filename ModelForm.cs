@@ -13,6 +13,8 @@ using CefSharp.WinForms;
 using CefSharp.SchemeHandler;
 using QuikGraph;
 using QuikGraph.Serialization;
+using System.Xml;
+using System.Xml.Linq;
 //using Microsoft.Msagl.Drawing;
 
 namespace University_Diploma
@@ -171,37 +173,67 @@ namespace University_Diploma
                 Console.Write("\n");
             }
             //MessageBox.Show(Paths.ToString());
-            Handler.EzariProshanAccount(Source, Target);
+            Calculations Form = new (Handler, Source, Target);
+            Form.Show();
+            //Handler.EzariProshanAccount(Source, Target);
         }
 
         private void ImportClick(object sender, EventArgs e)
         {
             OpenFileDialog Dialog = new();
-            Dialog.Filter = "*.graphml"; // file types, that will be allowed to upload
+            Dialog.Filter = "GraphML files | *.graphml"; // file types, that will be allowed to upload
             Dialog.Multiselect = false; // allow/deny user to upload more than one file at a time
             if (Dialog.ShowDialog() == DialogResult.Cancel)
                 return;
-            string Path = Dialog.FileName; // get name of file
-            string Text;
-            using (StreamReader reader = new(
+            string FileName = Dialog.FileName; // get name of file
+            //string Text;
+            /*using (StreamReader reader = new(
                 new FileStream(Path, FileMode.Open), new UTF8Encoding())) // do anything you want, e.g. read it
             {
                 Text = reader.ReadToEnd();
-            }
+            }*/
+            /*UndirectedGraph<Node, GraphEdge> Deserialized = new();
+            var VertexFactory = new IdentifiableVertexFactory<Node>((id, label) => new Node(id, label);
+            var EdgeFactory = new IdentifiableEdgeFactory<Node, GraphEdge>();
+            Deserialized = Deserialized.DeserializeFromGraphML(Path, (string id, string label) => new Node(id, label), (Node source, Node target, double probability) => new GraphEdge(source, target, probability));*/
             var Graph = Proxy.Graph;
+            Graph.Clear();
+            //var Namespace = XNamespace.Get("http://graphml.graphdrawing.org/xmlns");
+            //XName XNgraph = XName.Get("graph", "http://graphml.graphdrawing.org/xmlns");
+            var XML = XDocument.Load(FileName);
+            var Nodes = XML.Root.Descendants("node");
+            var Edges = XML.Root.Descendants("edge");
+            foreach (var Node in Nodes)
+            {
+                string ID = Node.Elements("data").Where(Name => Name.Name == "id").Select(Element => Element.Value).First();
+                string Label = Node.Elements("data").Where(Name => Name.Name == "label").Select(Element => Element.Value).First();
+                Graph.AddVertex(new Node(ID, Label));
+            }
+            foreach (var Edge in Edges)
+            {
+                string Source = (from Node in Nodes where Node.Attribute("id").Value.Equals(Edge.Attribute("source").Value) 
+                                select Node.Elements("data").Where(Element => Element.Attribute("Key").Value.Equals("id")).First().Value).First();
+                string Target = (from Node in Nodes where Node.Attribute("id").Value.Equals(Edge.Attribute("target").Value)
+                                 select Node.Elements("data").Where(Element => Element.Attribute("Key").Value.Equals("id")).First().Value).First();
+                Node source = Graph.Vertices.Where(Node => Node.Label.Equals(Source)).First();
+                Node target = Graph.Vertices.Where(Node => Node.Label.Equals(Target)).First();
+                Graph.AddEdge(new GraphEdge(source, target, double.Parse(Edge.Element("data").Value)));
+            }
+            //var edges = xelement.Elements(XNgraph)
         }
 
         private void ExportClick(object sender, EventArgs e)
         {
             SaveFileDialog Dialog = new();
-            Dialog.Filter = "*.graphml"; // file types, that will be allowed to upload
+            Dialog.Filter = "GraphML files | *.graphml"; // file types, that will be allowed to upload
             if (Dialog.ShowDialog() == DialogResult.Cancel)
                 return;
             // get selected file
             string Filename = Dialog.FileName;
             // save text into the file
             var Graph = Proxy.Graph;
-            Graph.SerializeToGraphML<Node, GraphEdge, UndirectedGraph<Node, GraphEdge>>(Filename);
+            using XmlWriter Writer = XmlWriter.Create(Filename, new XmlWriterSettings { Indent = true, WriteEndDocumentOnClose = false });
+            Graph.SerializeToGraphML<Node, GraphEdge, UndirectedGraph<Node, GraphEdge>>(Writer);
         }
 
         /*public static uint ColorToUInt(Color color)
