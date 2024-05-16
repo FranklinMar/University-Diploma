@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using QuikGraph.Algorithms.Search;
 using QuikGraph.Algorithms.Observers;
 using System.Windows.Forms;
+using System.Collections;
 
 namespace University_Diploma
 {
@@ -16,19 +17,19 @@ namespace University_Diploma
         // UndirectedGraph
         // UndirectedDepthFirstSearchAlgorithm
         // UndirectedVertexPredecessorRecorderObserver
-        public UndirectedGraph<Node, UndirectedEdge<Node>> Graph { get; private set; }
-        public Dictionary<UndirectedEdge<Node>, double> Probabilities { get; private set; }
+        public UndirectedGraph<Node, GraphEdge> Graph { get; private set; }
+        //public Dictionary<GraphEdge, double> Probabilities { get; private set; }
         public readonly List<List<Node>> NodePaths = new();
-        private readonly List<List<UndirectedEdge<Node>>> MinPaths = new();
-        private readonly List<List<UndirectedEdge<Node>>> MinCuts = new();
-        //private UndirectedDepthFirstSearchAlgorithm<Node, UndirectedEdge<Node>> Algorithm;
-        //private UndirectedVertexPredecessorRecorderObserver<Node, UndirectedEdge<Node>> Observer;
+        private readonly List<List<GraphEdge>> MinPaths = new();
+        private readonly List<List<GraphEdge>> MinCuts = new();
+        //private UndirectedDepthFirstSearchAlgorithm<Node, GraphEdge> Algorithm;
+        //private UndirectedVertexPredecessorRecorderObserver<Node, GraphEdge> Observer;
         private readonly Random Generator = new ();
 
-        public GraphHandler(UndirectedGraph<Node, UndirectedEdge<Node>> graph, Dictionary<UndirectedEdge<Node>, double> probabilities)
+        public GraphHandler(UndirectedGraph<Node, GraphEdge> graph/*, Dictionary<GraphEdge, double> probabilities*/)
         {
             Graph = graph;
-            Probabilities = probabilities;
+            //Probabilities = probabilities;
             //Graph.Edges.ToList()[0].
         }
 
@@ -43,9 +44,9 @@ namespace University_Diploma
             foreach(var Cut in MinCuts)
             {
                 MultiplyProbabilities = 1;
-                foreach(UndirectedEdge<Node> Edge in Cut)
+                foreach(GraphEdge Edge in Cut)
                 {
-                    MultiplyProbabilities *= (1 - Probabilities[Edge]);
+                    MultiplyProbabilities *= (1 - Edge.Probability/*Probabilities[Edge]*/);
                 }
                 LowerLimit *= (1 - MultiplyProbabilities);
             }
@@ -53,9 +54,9 @@ namespace University_Diploma
             foreach (var Path in MinPaths)
             {
                 MultiplyProbabilities = 1;
-                foreach(UndirectedEdge<Node> Edge in Path)
+                foreach(GraphEdge Edge in Path)
                 {
-                    MultiplyProbabilities *= Probabilities[Edge];
+                    MultiplyProbabilities *= Edge.Probability;//Probabilities[Edge];
                 }
                 UpperLimit *= (1 - MultiplyProbabilities);
             }
@@ -127,7 +128,7 @@ namespace University_Diploma
             }
         }*/
 
-        public List<List<UndirectedEdge<Node>>> AllMinPaths(Node Source, Node Target)
+        public List<List<GraphEdge>> AllMinPaths(Node Source, Node Target)
         {
             //NodePaths.Clear();
             MinPaths.Clear();
@@ -146,7 +147,7 @@ namespace University_Diploma
                     //NodePaths.Add(new List<Node> (Path));
                 }
                 var Edges = Graph.AdjacentEdges(Last);
-                foreach(UndirectedEdge<Node> Edge in Edges)
+                foreach(GraphEdge Edge in Edges)
                 {
                     if (/*(Edge.Source == Last && !Path.Contains(Edge.Target)) ||
                         (Edge.Target == Last && !Path.Contains(Edge.Source))*/
@@ -161,10 +162,10 @@ namespace University_Diploma
             return MinPaths;
         }
 
-        public List<UndirectedEdge<Node>> PathNodeToEdge(List<Node> Path)
+        public List<GraphEdge> PathNodeToEdge(List<Node> Path)
         {
-            List<UndirectedEdge<Node>> New = new();
-            UndirectedEdge<Node> Edge;
+            List<GraphEdge> New = new();
+            GraphEdge Edge;
             for (int i = 0; i < Path.Count - 1; i++)
             {
                 Edge = Graph.Edges.First(edge => edge.UndirectedVertexEquality(Path[i], Path[i + 1])/*(edge.Source == Path[i] && edge.Target == Path[i + 1]) ||
@@ -181,11 +182,12 @@ namespace University_Diploma
             //return null;
         }*/
         // Karger's Algorithm
-        public List<List<UndirectedEdge<Node>>> AllMinCuts(Node Source, Node Target)
+        public List<List<GraphEdge>> AllMinCuts(Node Source, Node Target)
         {
             MinCuts.Clear();
             //HashSet<Node> SourceSet = new();
-            List<List<UndirectedEdge<Node>>> Cuts = new();
+            List<List<GraphEdge>> Cuts = new();
+            Queue<List<Node>> Queue = new();
             //UndirectedGraph<Node, Edge<Node>> graph = Graph.Clone();
 
             //Node Current = Source;
@@ -209,27 +211,100 @@ namespace University_Diploma
                 Cuts.Add(graph.AdjacentEdges(CurrentSource).ToList());
             }*/
             List<Node> CurrentSet = new() { Source };
-            List<UndirectedEdge<Node>> CurrentCut = new();
-            UndirectedEdge<Node> RandomEdge;
-            while (Graph.Vertices.Count() - CurrentSet.Count >= 2)
+            List<GraphEdge> CurrentCut = new();
+            //GraphEdge RandomEdge;
+            Queue.Enqueue(CurrentSet);
+            while (Queue.Count != 0)
             {
+                CurrentSet = Queue.Dequeue();
+                CurrentCut = new();
                 foreach (Node Node in CurrentSet)
                 {
                     CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
                 }
                 Cuts.Add(CurrentCut);
-                List<UndirectedEdge<Node>> CutWithoutTarget = CurrentCut.Where(Edge => Edge.Source != Target && Edge.Target != Target).ToList();
-                int RandomInt = Generator.Next(0, CutWithoutTarget.Count);
-                RandomEdge = CutWithoutTarget.ElementAt(RandomInt);
-                CurrentSet.Add(CurrentSet.Contains(RandomEdge.Source) ? RandomEdge.Target : RandomEdge.Source);
-                CurrentCut = new();
+                if (Graph.Vertices.Count() - CurrentSet.Count >= 2)
+                {
+                    List<GraphEdge> CutWithoutTarget = CurrentCut.Where(Edge => Edge.Source != Target && Edge.Target != Target).ToList();
+                    foreach (GraphEdge EveryEdge in CutWithoutTarget)
+                    {
+                        List<Node> New = new (CurrentSet);
+                        if (CurrentSet.Contains(EveryEdge.Source))
+                        {
+                            if (!CurrentSet.Contains(EveryEdge.Target))
+                            {
+                                New.Add(EveryEdge.Target);
+                            } else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            New.Add(EveryEdge.Source);
+                        }
+                        //New.Add(CurrentSet.Contains(EveryEdge.Source) ? EveryEdge.Target : EveryEdge.Source);
+                        Queue.Enqueue(New);
+                    }
+                    //int RandomInt = Generator.Next(0, CutWithoutTarget.Count);
+                    //RandomEdge = CutWithoutTarget.ElementAt(RandomInt);
+                    //CurrentSet.Add(CurrentSet.Contains(RandomEdge.Source) ? RandomEdge.Target : RandomEdge.Source);
+                    //CurrentCut = new();
+                }
+                /*foreach (Node Node in CurrentSet)
+                {
+                    CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
+                }
+                Cuts.Add(CurrentCut);*/
             }
-            foreach (Node Node in CurrentSet)
+            foreach (var Cut in Cuts)
             {
-                CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
+                MinCuts.AddUnique(Cut);
             }
-            Cuts.Add(CurrentCut);
+            /*foreach (List<GraphEdge> Cut in Cuts)
+            {
+                if (Cuts.Any(OtherCut.All()))
+            }*/
+            /*foreach(List<GraphEdge> Cut in Cuts)
+            {
+                foreach (List<GraphEdge> OtherCut in Cuts)
+                {
+                    if (!Cut.SequenceEqual(OtherCut) || !(MinCuts.Contains(Cut) || MinCuts.Contains(OtherCut)))
+                    {
+                        MinCuts.Add(Cut);
+                    }
+                }
+            }*/
 
+
+            /*HashSet<List<GraphEdge>> Set = Cuts.ToHashSet(Comparer<List<GraphEdge>>.Create((Cut, OtherCut) => { 
+                if (Cut == OtherCut)
+                {
+                    return 0;
+                }
+                if (Cut.Count < OtherCut.Count)
+                {
+                    return -1;
+                } else if (Cut.Count > OtherCut.Count)
+                {
+                    return 1;
+                }
+                if (Cut.All(Edge => OtherCut.Contains(Edge)))
+                {
+                    return 0;
+                }
+                return 1;
+            }));
+            MinCuts.AddRange(Set);*/
+            /*foreach (List<GraphEdge> Cut in Cuts)
+            {
+                //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
+                if (!Cuts.Any(OtherCut => (IsSubset(Cut, OtherCut) && Cut != OtherCut) || 
+                !(MinCuts.Contains(Cut) && MinCuts.Contains(OtherCut))))
+                {
+                    MinCuts.Add(Cut);
+                }
+            }*/
             /*foreach (List<Edge<Node>> Cut in Cuts)
             {
                 //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
@@ -238,7 +313,7 @@ namespace University_Diploma
                     MinCuts.Add(Cut);
                 }
             }*/
-            MinCuts.AddRange(Cuts);
+            //MinCuts.AddRange(Cuts);
             /*List<List<Edge<Node>>> NewCuts = new();
             foreach (List<Edge<Node>> Cut in Cuts)
             {
@@ -260,6 +335,7 @@ namespace University_Diploma
             return MinCuts;
         }
 
+        //priavte static bool EqualLists<List<Edge>
         /*private *//*UndirectedGraph<Node, Edge<Node>>*//*Node MergeNodes(UndirectedGraph<Node, Edge<Node>> graph, Node Source, Node Merging)
         {
             List<Edge<Node>> SourceEdges = new();
@@ -293,10 +369,10 @@ namespace University_Diploma
             }
             return NewNode;
         }*/
-        private static bool IsSubset(List<UndirectedEdge<Node>> Set, List<UndirectedEdge<Node>> SubSet) =>
-            SubSet.All(SubEdge => Set.Any(Edge => Edge.UndirectedVertexEquality(SubEdge.Source, SubEdge.Target)));
+        /*private static bool IsSubset(List<GraphEdge> Set, List<GraphEdge> SubSet) =>
+            SubSet.All(SubEdge => Set.Any(Edge => Edge.UndirectedVertexEquality(SubEdge.Source, SubEdge.Target)));*.
 
-        /*private bool EqualEdges(UndirectedEdge<Node> Edge1, UndirectedEdge<Node> Edge2) =>
+        /*private bool EqualEdges(GraphEdge Edge1, GraphEdge Edge2) =>
             (Edge1.Source == Edge2.Source && Edge1.Target == Edge2.Target) ||
             (Edge1.Source == Edge2.Target && Edge1.Target == Edge2.Source);*/
         /*private List<Edge<Node>> AllEdges(BidirectionalGraph<Node, Edge<Node>> graph, Node node)
@@ -360,5 +436,16 @@ namespace University_Diploma
                 }
             }
         }*/
+    }
+}
+
+public static class ListExtensions
+{
+    public static void AddUnique<T>(this List<List<T>> list, List<T> item)
+    {
+        if (list.All(innerList => !innerList.All(obj => item.Contains(obj, EqualityComparer<T>.Default))))
+        {
+            list.Add(item);
+        }
     }
 }

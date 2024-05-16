@@ -33,13 +33,13 @@ namespace University_Diploma
         {
             this.Browser = new CefSharp.WinForms.ChromiumWebBrowser();
             this.SidePanel = new System.Windows.Forms.Panel();
+            this.ImportButton = new System.Windows.Forms.Button();
+            this.ExportButton = new System.Windows.Forms.Button();
             this.CalcButton = new System.Windows.Forms.Button();
             this.TargetBox = new System.Windows.Forms.ComboBox();
             this.TargetLabel = new System.Windows.Forms.Label();
             this.SourceBox = new System.Windows.Forms.ComboBox();
             this.SourceLabel = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.SidePanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,8 +57,8 @@ namespace University_Diploma
             this.SidePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.SidePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(35)))));
             this.SidePanel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.SidePanel.Controls.Add(this.button2);
-            this.SidePanel.Controls.Add(this.button1);
+            this.SidePanel.Controls.Add(this.ImportButton);
+            this.SidePanel.Controls.Add(this.ExportButton);
             this.SidePanel.Controls.Add(this.CalcButton);
             this.SidePanel.Controls.Add(this.TargetBox);
             this.SidePanel.Controls.Add(this.TargetLabel);
@@ -68,6 +68,30 @@ namespace University_Diploma
             this.SidePanel.Name = "SidePanel";
             this.SidePanel.Size = new System.Drawing.Size(198, 653);
             this.SidePanel.TabIndex = 2;
+            // 
+            // ImportButton
+            // 
+            this.ImportButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.ImportButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.ImportButton.Location = new System.Drawing.Point(20, 575);
+            this.ImportButton.Name = "ImportButton";
+            this.ImportButton.Size = new System.Drawing.Size(151, 29);
+            this.ImportButton.TabIndex = 6;
+            this.ImportButton.Text = "Import Button";
+            this.ImportButton.UseVisualStyleBackColor = false;
+            this.ImportButton.Click += new System.EventHandler(this.ImportClick);
+            // 
+            // ExportButton
+            // 
+            this.ExportButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
+            this.ExportButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.ExportButton.Location = new System.Drawing.Point(20, 610);
+            this.ExportButton.Name = "ExportButton";
+            this.ExportButton.Size = new System.Drawing.Size(151, 29);
+            this.ExportButton.TabIndex = 5;
+            this.ExportButton.Text = "Export Button";
+            this.ExportButton.UseVisualStyleBackColor = false;
+            this.ExportButton.Click += new System.EventHandler(this.ExportClick);
             // 
             // CalcButton
             // 
@@ -120,30 +144,6 @@ namespace University_Diploma
             this.SourceLabel.TabIndex = 0;
             this.SourceLabel.Text = "Source Node:";
             // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
-            this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.button1.Enabled = false;
-            this.button1.Location = new System.Drawing.Point(20, 610);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(151, 29);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Calculate";
-            this.button1.UseVisualStyleBackColor = false;
-            // 
-            // button2
-            // 
-            this.button2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
-            this.button2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.button2.Enabled = false;
-            this.button2.Location = new System.Drawing.Point(20, 575);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(151, 29);
-            this.button2.TabIndex = 6;
-            this.button2.Text = "Calculate";
-            this.button2.UseVisualStyleBackColor = false;
-            // 
             // ModelForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -170,7 +170,7 @@ namespace University_Diploma
         private System.Windows.Forms.ComboBox TargetBox;
         private System.Windows.Forms.Label TargetLabel;
         private System.Windows.Forms.Button CalcButton;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button ImportButton;
+        private System.Windows.Forms.Button ExportButton;
     }
 }

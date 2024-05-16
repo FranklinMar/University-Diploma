@@ -12,6 +12,7 @@ using CefSharp;
 using CefSharp.WinForms;
 using CefSharp.SchemeHandler;
 using QuikGraph;
+using QuikGraph.Serialization;
 //using Microsoft.Msagl.Drawing;
 
 namespace University_Diploma
@@ -46,7 +47,7 @@ namespace University_Diploma
             AllocateConsole();
             InitializeComponent();
             Proxy = new(OnGraphChanged/*out Graph*/);
-            Handler = new(Proxy.Graph, Proxy.Probabilities);
+            Handler = new(Proxy.Graph/*, Proxy.Probabilities*/);
             string Domain = "modelling";
             string Scheme = "resources";
             CefSettings Settings = new();
@@ -148,29 +149,59 @@ namespace University_Diploma
         {
             var Source = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(SourceBox.SelectedItem)).First();
             var Target = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(TargetBox.SelectedItem)).First();
-            Handler.EzariProshanAccount(Source, Target);
-            //var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
-            //var Cuts = Handler.AllMinCuts(Source, Target);
+            var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
+            var Cuts = Handler.AllMinCuts(Source, Target);
             //var NodePaths = Handler.NodePaths;
-            /*Console.WriteLine("Edge paths");
-            foreach (List<UndirectedEdge<Node>> Path in Paths)
+            Console.WriteLine("Edge paths");
+            foreach (List<GraphEdge> Path in Paths)
             {
                 Path.ForEach(Edge => Console.Write($"{Edge.Source.Label}---{Edge.Target.Label}|"));
                 Console.Write("\n");
-            }*/
+            }
             /*Console.WriteLine("Node Paths");
-            foreach(List<Node> Path in NodePaths)
+            foreach (List<Node> Path in NodePaths)
             {
                 Path.ForEach(Node => Console.Write($"{Node.Label}|"));
                 Console.Write("\n");
             }*/
-            /*Console.WriteLine("\nMin cuts");
-            foreach(List<UndirectedEdge<Node>> Cut in Cuts)
+            Console.WriteLine("\nMin cuts");
+            foreach (List<GraphEdge> Cut in Cuts)
             {
                 Cut.ForEach(Edge => Console.Write($"{Edge.Source.Label}---{Edge.Target.Label}|"));
                 Console.Write("\n");
-            }*/
+            }
             //MessageBox.Show(Paths.ToString());
+            Handler.EzariProshanAccount(Source, Target);
+        }
+
+        private void ImportClick(object sender, EventArgs e)
+        {
+            OpenFileDialog Dialog = new();
+            Dialog.Filter = "*.graphml"; // file types, that will be allowed to upload
+            Dialog.Multiselect = false; // allow/deny user to upload more than one file at a time
+            if (Dialog.ShowDialog() == DialogResult.Cancel)
+                return;
+            string Path = Dialog.FileName; // get name of file
+            string Text;
+            using (StreamReader reader = new(
+                new FileStream(Path, FileMode.Open), new UTF8Encoding())) // do anything you want, e.g. read it
+            {
+                Text = reader.ReadToEnd();
+            }
+            var Graph = Proxy.Graph;
+        }
+
+        private void ExportClick(object sender, EventArgs e)
+        {
+            SaveFileDialog Dialog = new();
+            Dialog.Filter = "*.graphml"; // file types, that will be allowed to upload
+            if (Dialog.ShowDialog() == DialogResult.Cancel)
+                return;
+            // get selected file
+            string Filename = Dialog.FileName;
+            // save text into the file
+            var Graph = Proxy.Graph;
+            Graph.SerializeToGraphML<Node, GraphEdge, UndirectedGraph<Node, GraphEdge>>(Filename);
         }
 
         /*public static uint ColorToUInt(Color color)

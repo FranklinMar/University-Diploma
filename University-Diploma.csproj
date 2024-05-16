@@ -12,6 +12,7 @@
     <PackageReference Include="CefSharp.WinForms.NETCore" Version="124.3.50" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="QuikGraph" Version="2.5.0" />
+    <PackageReference Include="QuikGraph.Serialization" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>

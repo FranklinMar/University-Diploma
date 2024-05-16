@@ -10,8 +10,8 @@ namespace University_Diploma
     public delegate void Notify();
     public class ProxyController
     {
-        public UndirectedGraph<Node, UndirectedEdge<Node>> Graph { get; private set; } = new();
-        public Dictionary<UndirectedEdge<Node>, double> Probabilities { get; private set; } = new();
+        public UndirectedGraph<Node, GraphEdge> Graph { get; private set; } = new();
+        //public Dictionary<GraphEdge, double> Probabilities { get; private set; } = new();
         public event Notify GraphChanged;
 
         public ProxyController(Notify graphChanged/*out UndirectedGraph<Node, Edge<Node>> graph*/)
@@ -31,7 +31,7 @@ namespace University_Diploma
             //List<string> TempIDs = new();
             JObject JSONObject = JObject.Parse(JSON);
             Graph.Clear();
-            Probabilities.Clear();
+            //Probabilities.Clear();
             JToken[] edges = JSONObject.GetValue("edges").ToArray();
             JToken[] nodes = JSONObject.GetValue("nodes").ToArray();
             foreach (JToken Node in nodes)
@@ -50,17 +50,17 @@ namespace University_Diploma
                 {
                     Node Source = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("source")));
                     Node Target = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("target")));
-                    UndirectedEdge<Node> edge;
+                    GraphEdge edge;
                     try
                     {
-                        edge = new(Source, Target);
+                        edge = new(Source, Target, Edge.Value<double>("label"));
                     }
                     catch (ArgumentException)
                     {
                         edge = new(Target, Source);
                     }
                     Graph.AddEdge(edge);
-                    Probabilities.Add(edge, Edge.Value<double>("label"));
+                    //Probabilities.Add(edge, Edge.Value<double>("label"));
                     //Graph.AddEdge(new Edge<Node>(Target, Source));
                 }
                 catch (InvalidOperationException)
