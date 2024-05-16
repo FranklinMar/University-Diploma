@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using QuikGraph.Algorithms.Search;
 using QuikGraph.Algorithms.Observers;
+using System.Windows.Forms;
 
 namespace University_Diploma
 {
@@ -16,7 +17,7 @@ namespace University_Diploma
         // UndirectedDepthFirstSearchAlgorithm
         // UndirectedVertexPredecessorRecorderObserver
         public UndirectedGraph<Node, UndirectedEdge<Node>> Graph { get; private set; }
-        public Dictionary<UndirectedEdge<Node>, double> Probabilities;
+        public Dictionary<UndirectedEdge<Node>, double> Probabilities { get; private set; }
         public readonly List<List<Node>> NodePaths = new();
         private readonly List<List<UndirectedEdge<Node>>> MinPaths = new();
         private readonly List<List<UndirectedEdge<Node>>> MinCuts = new();
@@ -24,10 +25,42 @@ namespace University_Diploma
         //private UndirectedVertexPredecessorRecorderObserver<Node, UndirectedEdge<Node>> Observer;
         private readonly Random Generator = new ();
 
-        public GraphHandler(UndirectedGraph<Node, UndirectedEdge<Node>> graph)
+        public GraphHandler(UndirectedGraph<Node, UndirectedEdge<Node>> graph, Dictionary<UndirectedEdge<Node>, double> probabilities)
         {
             Graph = graph;
+            Probabilities = probabilities;
             //Graph.Edges.ToList()[0].
+        }
+
+        public void EzariProshanAccount(Node Source, Node Target)
+        {
+            AllMinPaths(Source, Target);
+            AllMinCuts(Source, Target);
+            double LowerLimit = 1;
+            double UpperLimit = 1;
+            double MultiplyProbabilities;
+            // П_(1<=k<=N) (1 - П_(i in B) (q_i))
+            foreach(var Cut in MinCuts)
+            {
+                MultiplyProbabilities = 1;
+                foreach(UndirectedEdge<Node> Edge in Cut)
+                {
+                    MultiplyProbabilities *= (1 - Probabilities[Edge]);
+                }
+                LowerLimit *= (1 - MultiplyProbabilities);
+            }
+            // 1 - П_(1<=j<=M) (1 - П_(i in A) (p_i))
+            foreach (var Path in MinPaths)
+            {
+                MultiplyProbabilities = 1;
+                foreach(UndirectedEdge<Node> Edge in Path)
+                {
+                    MultiplyProbabilities *= Probabilities[Edge];
+                }
+                UpperLimit *= (1 - MultiplyProbabilities);
+            }
+            UpperLimit = 1 - UpperLimit;
+            MessageBox.Show($"{LowerLimit} <= M Ф (X) <= {UpperLimit}", "Calculations complete!");
         }
 
         /*public List<List<Node>> AllNodePaths(Node Source, Node Target)

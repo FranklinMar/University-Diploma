@@ -96,22 +96,29 @@ document.addEventListener('DOMContentLoaded', function () {
         container: DivCy, // Container to render in
 
         elements: [ // List of graph elements to start with
-            { // Node A
-                data: { id: Source, label: 'Front Pole' } //, pole: true }
+            /*{ // Node A
+                data: { id: Source, label: 'Front Pole' }, //, pole: true }
+                classes: ['outline', 'top-left']
             },
             { // Node B
-                data: { id: Target, label: 'Back Pole' } //, pole: true }
+                data: { id: Target, label: 'Back Pole' }, //, pole: true }
+                classes: ['outline', 'top-left']
             },
             { // Edge AB
-                data: { id: crypto.randomUUID(), source: Source, target: Target, label: 'hello' }
-            }
+                data: { id: crypto.randomUUID(), source: Source, target: Target, label: 'hello' },
+                classes: 'top-left'
+            }*/
         ],
         style: [ // The stylesheet for the graph
             {
                 selector: 'node',
                 style: {
                     'background-color': '#666',
-                    'label': 'data(label)'
+                    'label': 'data(label)',
+                    'cursor': 'pointer',
+                    "color": "#fff",
+                    "text-outline-color": "#888",
+                    "text-outline-width": 3
                 }
             },
             {
@@ -124,16 +131,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     'target-arrow-color': '#000',
                     'source-arrow-shape': 'triangle-backcurve',
                     'target-arrow-shape': 'triangle-backcurve',
-                    'curve-style': 'bezier'
+                    'curve-style': 'bezier',
                 },
             },
             {
-                selector: ':selected',
-                style: {
-                    "border-width": 2,
-                    "border-color": "rgb(1,105,217)"
+                selector: "edge[label]",
+                css: {
+                    "label": "data(label)",
+                    "color": "#fff",
+                    "text-outline-color": "#000",
+                    "text-outline-width": 3
+                    /*"text-margin-x": "0px",
+                    "text-margin-y": "0px",
+                    "text-background-opacity": 1,
+                    "color": "#fff",
+                    "text-background-color": "#000",
+                    "text-valign": "top",
+                    "text-halign": "left"*/
                 }
-            }
+            },
         ],
         layout: {
             name: 'breadthfirst', //'concentric'
@@ -143,8 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
             //rows: 1
         }
     });
-    Cy.nodes().classes(['outline', 'top-left']);
-    Cy.edges().classes('top-left');
     //Cy.userPanningEnabled(false);
     //Cy.userZoomingEnabled(true);
     Cy.pan(renderedPosition = { x: 0, y: 0 });
@@ -205,41 +219,79 @@ document.addEventListener('DOMContentLoaded', function () {
     var Disable = function() {
         EdgeHan.disableDrawMode();
     }*/
-    function CreateInput(ID, Pos) {
+    // Restricts input for the given textbox to the given inputFilter function.
+    function setInputFilter(textbox, inputFilter, errMsg) {
+        ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"].forEach(function (event) {
+            textbox.addEventListener(event, function (e) {
+                if (inputFilter(this.value)) {
+                    // Accepted value.
+                    if (["keydown", "mousedown", "focusout"].indexOf(e.type) >= 0) {
+                        this.classList.remove("input-error");
+                        this.setCustomValidity("");
+                    }
+
+                    this.oldValue = this.value;
+                    this.oldSelectionStart = this.selectionStart;
+                    this.oldSelectionEnd = this.selectionEnd;
+                }
+                else if (this.hasOwnProperty("oldValue")) {
+                    // Rejected value: restore the previous one.
+                    this.classList.add("input-error");
+                    this.setCustomValidity(errMsg);
+                    this.reportValidity();
+                    this.value = this.oldValue;
+                    this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+                }
+                else {
+                    // Rejected value: nothing to restore.
+                    this.value = "0";
+                }
+            });
+        });
+    }
+
+    function CreateInput(ID, Pos, Value, Remove) {
         let WindowWidth = window.innerWidth;
         let WindowHeight = window.innerHeight;
 
         let Width = 50;
         let Height = 20;
-        let NameInput = document.createElement("input");
-        NameInput.type = "text";
-        NameInput.style.width = Width + "px";
-        NameInput.style.height = Height + "px";
-        NameInput.DataNode = ID;
-        NameInput.style.position = "absolute";
+        let Input = document.createElement("input");
+        Input.type = "text";
+        Input.style.width = Width + "px";
+        Input.style.height = Height + "px";
+        Input.DataNode = ID;
+        Input.style.position = "absolute";
 
         if (WindowWidth - Pos.x < Width) {
-            NameInput.style.left = (WindowWidth - Width) + "px";
+            Input.style.left = (WindowWidth - Width) + "px";
         } else {
-            NameInput.style.left = (Pos.x - Width / 2) + "px";
+            Input.style.left = (Pos.x - Width / 2) + "px";
         }
         if (WindowHeight - Pos.y < Height) {
-            NameInput.style.top = (WindowHeight - Height) + "px";
+            Input.style.top = (WindowHeight - Height) + "px";
         } else {
-            NameInput.style.top = (Pos.y - Height * 2) + "px";
+            Input.style.top = (Pos.y - Height * 2) + "px";
         }
-        NameInput.style.zIndex = 10;
-        Body.appendChild(NameInput);
-        NameInput.focus();
-        NameInput.addEventListener('focusout', function (event) {
-            if (NameInput.value === "") {
-                Cy.remove(ID);
+        Input.style.zIndex = 10;
+        Input.value = Value;
+        Body.appendChild(Input);
+        Input.focus();
+        Cy.nodes().lock();
+        Input.addEventListener('focusout', function (event) {
+            if (Input.value === "") {
+                if (Remove) {
+                    Cy.remove(`#${ID}`);
+                } else {
+                    //Cy.getElementById(ID).attr('label', Value);
+                }
             } else {
-                Cy.getElementById(ID).attr('label', NameInput.value);
+                Cy.getElementById(ID).attr('label', Input.value);
             }
-            NameInput.remove();
+            Cy.nodes().unlock();
+            Input.remove();
         });
-        return NameInput;
+        return Input;
     }
    
     var ContextMenu = Cy.contextMenus({
@@ -271,7 +323,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     ContextMenu.hideMenuItem('undo-last-remove');
                 },
                 hasTrailingDivider: true
-            }, {
+            },
+            {
                 id: 'add-node',
                 content: 'Add node',
                 //tooltipText: 'Add new node',
@@ -283,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         //group: 'nodes',
                         id: ID
                     };
-
                     var Pos = event.position || event.cyPosition;
 
                     Cy.add({
@@ -293,8 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             y: Pos.y
                         }
                     });
-
-                    CreateInput(ID, Pos);
+                    CreateInput(ID, Pos, "", true);
                 }
             },
             {
@@ -306,10 +357,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     let ID = crypto.randomUUID();
                     EdgeHan.start(event.target);
                     event.target.data('id', ID);
-
-                    var Pos = event.position || event.cyPosition;
-
-                    CreateInput(ID, Pos);
+                    //event.target.data('label', 0.0);
                 },
                 hasTrailingDivider: true
             },
@@ -376,18 +424,34 @@ document.addEventListener('DOMContentLoaded', function () {
             // add class names to this list
         ],
     });
-    Cy.on('add', 'edge', function (event) {
+    Cy.on('ehstart', function (event) {
+        //Cy.getElementById(event.target.data('id')).attr('label', "0.0");
+    });
+    Cy.on('ehcomplete', function (event, sourceNode, targetNode, addedEdge) {
         for (let Value of Cy.edges('edge')) {
-            if (Value.data('source') === event.target.data('source') &&
-                Value.data('target') === event.target.data('target') &&
-                Value.data('id') !== event.target.data('id')) {
-                Cy.remove(`#${event.target.data('id')}`);
+            if (Value.data('source') === addedEdge.data('source') &&
+                Value.data('target') === addedEdge.data('target') &&
+                Value.data('id') !== addedEdge.data('id')) {
+                Cy.remove(addedEdge.data('id'));
                 let Source = Cy.nodes(`#${Value.data('source')}`);
                 let Target = Cy.nodes(`#${Value.data('target')}`);
                 Proxy.displayError(`Edge with Source:(${Source.data('label')}) and Target:(${Target.data('label')}) already exists`);
+                return;
             }
         }
-        
+        //var Pos = event.position || event.cyPosition;
+        //console.log(event);
+        //console.log(addedEdge);
+        //console.log(Cy.edges(`${addedEdge.data('id')}`));
+        let Input = CreateInput(addedEdge.data('id'), addedEdge.midpoint(), "0");
+        Input.type = "number";
+        /*Input.min = "0.0";
+        Input.max = "100.0";*/
+        Input.step = "0.01"
+        setInputFilter(Input, (value) => (value <= 1 && value >= 0), "Value must be in range from 0 to 1");
+        setInputFilter(Input, (value) => (value !== "" && value !== null & value !== undefined), "Value must not be empty");
+        //    return value !== null & value !== undefined && value <= 1 && value >= 0 && value !== "";
+        //});
         //let Edges = Cy.edges; //'node[souce = "Car"]';
         //const UniqueElements = new Set();
         //let filteredNodes = cy.nodes(query);
@@ -400,8 +464,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 UniqueElements.add(Edge);
             }
         });*/
+        RefreshGraph()
     });
-    Cy.on('add remove data', 'node, edge', function () {
+    Cy.on('add remove data', 'node', RefreshGraph);
+    Cy.on('remove data', 'edge', RefreshGraph);
+    //Proxy.recieveGraph(`${{ "1": 1}}`);
+    //console.log(Cy.data());
+
+    function RefreshGraph() {
         let Result = {};
         Result['nodes'] = [];
         Result['edges'] = [];
@@ -420,9 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         console.log(Result);
         Proxy.recieveGraph(JSON.stringify(Result));
-    });
-    //Proxy.recieveGraph(`${{ "1": 1}}`);
-    //console.log(Cy.data());
+    }
 });
 </script>
 </body>

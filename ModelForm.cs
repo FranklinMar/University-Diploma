@@ -46,7 +46,7 @@ namespace University_Diploma
             AllocateConsole();
             InitializeComponent();
             Proxy = new(OnGraphChanged/*out Graph*/);
-            Handler = new(Proxy.Graph);
+            Handler = new(Proxy.Graph, Proxy.Probabilities);
             string Domain = "modelling";
             string Scheme = "resources";
             CefSettings Settings = new();
@@ -148,8 +148,9 @@ namespace University_Diploma
         {
             var Source = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(SourceBox.SelectedItem)).First();
             var Target = Handler.Graph.Vertices.Where(Node => Node.Label.Equals(TargetBox.SelectedItem)).First();
-            var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
-            var Cuts = Handler.AllMinCuts(Source, Target);
+            Handler.EzariProshanAccount(Source, Target);
+            //var Paths = Handler.AllMinPaths(Source, Target);//Handler.AllEdgePaths(Source, Target);
+            //var Cuts = Handler.AllMinCuts(Source, Target);
             //var NodePaths = Handler.NodePaths;
             /*Console.WriteLine("Edge paths");
             foreach (List<UndirectedEdge<Node>> Path in Paths)
