@@ -71,10 +71,14 @@
             text-align: left;
         }
 
-            .item:hover {
-                background-color: rgba(44, 141, 247, 0.2);
-                cursor: pointer;
-            }
+        .item:hover {
+            background-color: rgba(44, 141, 247, 0.2);
+            cursor: pointer;
+        }
+
+        .cysWrapper.mouseover {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -115,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 style: {
                     'background-color': '#666',
                     'label': 'data(label)',
-                    'cursor': 'pointer',
+                    //'cursor': 'pointer',
                     "color": "#fff",
                     "text-outline-color": "#888",
                     "text-outline-width": 3
@@ -229,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         this.classList.remove("input-error");
                         this.setCustomValidity("");
                     }
-
+                    this.value = this.value.trim();
                     this.oldValue = this.value;
                     this.oldSelectionStart = this.selectionStart;
                     this.oldSelectionEnd = this.selectionEnd;
@@ -244,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 else {
                     // Rejected value: nothing to restore.
-                    this.value = "0";
+                    this.value = "0.5";
                 }
             });
         });
@@ -306,11 +310,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var target = event.target || event.cyTarget;
                     removed = target.remove();
 
-                    ContextMenu.showMenuItem('undo-last-remove');
+                    //ContextMenu.showMenuItem('undo-last-remove');
                 },
                 hasTrailingDivider: true
             },
-            {
+            /*{
                 id: 'undo-last-remove',
                 content: 'Undo last remove',
                 selector: 'node, edge',
@@ -320,10 +324,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (removed) {
                         removed.restore();
                     }
-                    ContextMenu.hideMenuItem('undo-last-remove');
+                    //ContextMenu.hideMenuItem('undo-last-remove');
                 },
                 hasTrailingDivider: true
-            },
+            },*/
             {
                 id: 'add-node',
                 content: 'Add node',
@@ -345,7 +349,28 @@ document.addEventListener('DOMContentLoaded', function () {
                             y: Pos.y
                         }
                     });
-                    CreateInput(ID, Pos, "", true);
+                    let Input = CreateInput(ID, Pos, "", true);
+                    setInputFilter(Input, (value) => {
+                        //console.log(Cy.json());
+                        //let Nodes = Cy.json().elements.nodes;//Cy.nodes().map(node => node.data('label'));
+                        //console.log(`Current value: "${value}"`);
+                        //onsole.log(Nodes);
+                        let Nodes = Cy.nodes().map(node => node.data('label'));
+                        //for (let i = 0; i < Nodes.length; i++) {
+                        for (let Node of Nodes) {
+                            //console.log(Node);
+                            value = value.trim();
+                            //console.log(`Modified value: "${value}"`);
+                            //console.log(`Current node:`);
+                            //console.log(Nodes[i].data);
+                            //console.log(`Current condition: ${Nodes[i].data.label === value }`);
+                            //if (Nodes[i].data.label === value) {
+                            if (Node === value) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }, "Label must be unique");
                 }
             },
             {
@@ -412,6 +437,46 @@ document.addEventListener('DOMContentLoaded', function () {
                     ContextMenu.showMenuItem('select-all-edges');
                     ContextMenu.hideMenuItem('unselect-all-edges');
                 }
+            },
+            {
+                id: 'change-probability',
+                content: 'Change probability',
+                //tooltipText: 'Remove element',
+                //image: { src: "assets/remove.svg", width: 12, height: 12, x: 6, y: 4 },
+                selector: 'edge',//'node[^pole], edge',
+                onClickFunction: function (event) {
+                    var target = event.target || event.cyTarget;
+                    let Input = CreateInput(target.data('id'), target.midpoint(), target.data('label'));
+                    Input.type = "number";
+                    Input.step = "0.01"
+                    setInputFilter(Input, (value) => (value <= 1 && value >= 0), "Value must be in range from 0 to 1");
+                    setInputFilter(Input, (value) => (value !== "" && value !== null & value !== undefined), "Value must not be empty");
+
+                    //ContextMenu.showMenuItem('undo-last-remove');
+                },
+                hasTrailingDivider: true
+            },
+            {
+                id: 'change-name',
+                content: 'Change name',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    var target = event.target || event.cyTarget;
+                    var Pos = event.position || event.cyPosition;
+
+                    let Input = CreateInput(target.data('id'), Pos, target.data('label'));
+                    setInputFilter(Input, (value) => {
+                        let Nodes = Cy.nodes().map(node => node.data());
+                        for (let Node of Nodes) {
+                            value = value.trim();
+                            if (Node.label === value && Node.id !== target.data('id')) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }, "Label must be unique");
+                },
+                hasTrailingDivider: true
             }
         ],
         menuItemClasses: [
@@ -430,8 +495,8 @@ document.addEventListener('DOMContentLoaded', function () {
     Cy.on('ehcomplete', function (event, sourceNode, targetNode, addedEdge) {
         for (let Value of Cy.edges('edge')) {
             if (Value.data('source') === addedEdge.data('source') &&
-                Value.data('target') === addedEdge.data('target') &&
-                Value.data('id') !== addedEdge.data('id')) {
+                    Value.data('target') === addedEdge.data('target') &&
+                    Value.data('id') !== addedEdge.data('id')) {
                 Cy.remove(addedEdge.data('id'));
                 let Source = Cy.nodes(`#${Value.data('source')}`);
                 let Target = Cy.nodes(`#${Value.data('target')}`);
@@ -443,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //console.log(event);
         //console.log(addedEdge);
         //console.log(Cy.edges(`${addedEdge.data('id')}`));
-        let Input = CreateInput(addedEdge.data('id'), addedEdge.midpoint(), "0");
+        let Input = CreateInput(addedEdge.data('id'), addedEdge.midpoint(), "0.5");
         Input.type = "number";
         /*Input.min = "0.0";
         Input.max = "100.0";*/
@@ -491,6 +556,16 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(Result);
         Proxy.recieveGraph(JSON.stringify(Result));
     }
+    /*Cy.on('mouseover', 'node', (event) => { console.log(event.target);event.target.classList.add('mouseover');});//Cy.getElementById('diagram-wrapper').css('cursor', 'pointer'));
+    Cy.on('mouseout', 'node', (event) => event.target.classList.remove('mouseover'));*/
+    /*Cy.on('mouseover', 'node', function (e) {
+        Cy.getElementById('diagram-wrapper').css('cursor', 'pointer');
+    });
+    Cy.on('mouseout', 'node', function (e) {
+        Cy.getElementById('diagram-wrapper').css('cursor', 'default');
+    });*/
+    Cy.on('mouseover', 'node', () => DivCy.style.cursor = 'pointer');
+    Cy.on('mouseout', 'node', () => DivCy.style.cursor = 'default');
 });
 </script>
 </body>

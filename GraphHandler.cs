@@ -127,7 +127,6 @@ namespace University_Diploma
             }
         }*/
 
-        // Karger's Algorithm
         public List<List<UndirectedEdge<Node>>> AllMinPaths(Node Source, Node Target)
         {
             //NodePaths.Clear();
@@ -181,6 +180,7 @@ namespace University_Diploma
             HashSet<Node> SeparateNodes = new();
             //return null;
         }*/
+        // Karger's Algorithm
         public List<List<UndirectedEdge<Node>>> AllMinCuts(Node Source, Node Target)
         {
             MinCuts.Clear();
