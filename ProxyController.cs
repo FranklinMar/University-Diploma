@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace University_Diploma
 {
-    public delegate void Notify();
+    public delegate void Notify(/*JObject JSON*/);
     public class ProxyController
     {
         public UndirectedGraph<Node, GraphEdge> Graph { get; private set; } = new();
@@ -36,7 +36,7 @@ namespace University_Diploma
             JToken[] nodes = JSONObject.GetValue("nodes").ToArray();
             foreach (JToken Node in nodes)
             {
-                if (Node.Value<string?>("label") != null)
+                if (Node.Value<string>("label") != "")
                 {
                     Graph.AddVertex(new Node(Node.Value<string>("id"), Node.Value<string>("label")/*, Node.Value<bool?>("pole") != null*/));
                 }/* else
@@ -53,13 +53,17 @@ namespace University_Diploma
                     GraphEdge edge;
                     try
                     {
-                        edge = new(Source, Target, Edge.Value<double>("label"));
+                        if (Edge.Value<string>("label") != "")
+                        {
+                            //MessageBox.Show($"'{Edge.Value<string>("label")}'");
+                            edge = new(Source, Target, Edge.Value<double>("label"));
+                            Graph.AddEdge(edge);
+                        }
                     }
                     catch (ArgumentException)
                     {
-                        edge = new(Target, Source);
+                        //edge = new(Target, Source);
                     }
-                    Graph.AddEdge(edge);
                     //Probabilities.Add(edge, Edge.Value<double>("label"));
                     //Graph.AddEdge(new Edge<Node>(Target, Source));
                 }
@@ -68,7 +72,7 @@ namespace University_Diploma
                     continue;
                 }
             }
-            GraphChanged?.Invoke();
+            GraphChanged?.Invoke(/*JSONObject*/);
             //Graph.Edges[0].
             //Graph.AddVertex()
             //MessageBox.Show(JSON.GetType().ToString());

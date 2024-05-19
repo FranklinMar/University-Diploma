@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="id" for="node" attr.name="id" attr.type="string" />
+  <key id="label" for="node" attr.name="label" attr.type="string" />
+  <key id="probability" for="edge" attr.name="probability" attr.type="double" />
+  <graph id="G" edgedefault="undirected" parse.nodes="2" parse.edges="1" parse.order="nodesfirst" parse.nodeids="free" parse.edgeids="free">
+    <node id="0">
+      <data key="id">175ad416-ad9a-4925-8609-35878345f1a0</data>
+      <data key="label">1</data>
+    </node>
+    <node id="1">
+      <data key="id">3cf0b356-dcfb-4240-9b4a-4f9ddab931c9</data>
+      <data key="label">2</data>
+    </node>
+    <edge id="0" source="0" target="1">
+      <data key="probability">0.5</data>
+    </edge>
+  </graph>
+</graphml>
