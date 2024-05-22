@@ -3,7 +3,7 @@ using System;
 
 namespace University_Diploma
 {
-    partial class ModelForm
+    partial class NetworkForm
     {
         /// <summary>
         /// Required designer variable.

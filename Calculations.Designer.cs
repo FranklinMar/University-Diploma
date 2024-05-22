@@ -53,20 +53,20 @@ namespace University_Diploma
             // 
             this.TextPaths.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.TextPaths.ForeColor = System.Drawing.Color.White;
-            this.TextPaths.Location = new System.Drawing.Point(16, 56);
+            this.TextPaths.Location = new System.Drawing.Point(13, 60);
             this.TextPaths.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TextPaths.Multiline = true;
             this.TextPaths.Name = "TextPaths";
             this.TextPaths.ReadOnly = true;
             this.TextPaths.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextPaths.Size = new System.Drawing.Size(450, 111);
+            this.TextPaths.Size = new System.Drawing.Size(470, 111);
             this.TextPaths.TabIndex = 0;
             // 
             // PathCaption
             // 
             this.PathCaption.AutoSize = true;
             this.PathCaption.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.PathCaption.Location = new System.Drawing.Point(18, 20);
+            this.PathCaption.Location = new System.Drawing.Point(15, 24);
             this.PathCaption.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.PathCaption.Name = "PathCaption";
             this.PathCaption.Size = new System.Drawing.Size(204, 23);
@@ -77,7 +77,7 @@ namespace University_Diploma
             // 
             this.CutsCaption.AutoSize = true;
             this.CutsCaption.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.CutsCaption.Location = new System.Drawing.Point(474, 20);
+            this.CutsCaption.Location = new System.Drawing.Point(501, 24);
             this.CutsCaption.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.CutsCaption.Name = "CutsCaption";
             this.CutsCaption.Size = new System.Drawing.Size(193, 23);
@@ -88,20 +88,20 @@ namespace University_Diploma
             // 
             this.TextCuts.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.TextCuts.ForeColor = System.Drawing.Color.White;
-            this.TextCuts.Location = new System.Drawing.Point(474, 56);
+            this.TextCuts.Location = new System.Drawing.Point(501, 60);
             this.TextCuts.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TextCuts.Multiline = true;
             this.TextCuts.Name = "TextCuts";
             this.TextCuts.ReadOnly = true;
             this.TextCuts.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextCuts.Size = new System.Drawing.Size(497, 111);
+            this.TextCuts.Size = new System.Drawing.Size(470, 111);
             this.TextCuts.TabIndex = 0;
             // 
             // LowerLabel
             // 
             this.LowerLabel.AutoSize = true;
             this.LowerLabel.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LowerLabel.Location = new System.Drawing.Point(474, 184);
+            this.LowerLabel.Location = new System.Drawing.Point(501, 188);
             this.LowerLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LowerLabel.Name = "LowerLabel";
             this.LowerLabel.Size = new System.Drawing.Size(344, 23);
@@ -112,20 +112,20 @@ namespace University_Diploma
             // 
             this.TextLower.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.TextLower.ForeColor = System.Drawing.Color.White;
-            this.TextLower.Location = new System.Drawing.Point(474, 220);
+            this.TextLower.Location = new System.Drawing.Point(501, 224);
             this.TextLower.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TextLower.Multiline = true;
             this.TextLower.Name = "TextLower";
             this.TextLower.ReadOnly = true;
             this.TextLower.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextLower.Size = new System.Drawing.Size(497, 111);
+            this.TextLower.Size = new System.Drawing.Size(470, 111);
             this.TextLower.TabIndex = 0;
             // 
             // UpperLabel
             // 
             this.UpperLabel.AutoSize = true;
             this.UpperLabel.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.UpperLabel.Location = new System.Drawing.Point(18, 184);
+            this.UpperLabel.Location = new System.Drawing.Point(15, 188);
             this.UpperLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.UpperLabel.Name = "UpperLabel";
             this.UpperLabel.Size = new System.Drawing.Size(377, 23);
@@ -136,13 +136,13 @@ namespace University_Diploma
             // 
             this.TextUpper.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.TextUpper.ForeColor = System.Drawing.Color.White;
-            this.TextUpper.Location = new System.Drawing.Point(16, 220);
+            this.TextUpper.Location = new System.Drawing.Point(13, 224);
             this.TextUpper.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TextUpper.Multiline = true;
             this.TextUpper.Name = "TextUpper";
             this.TextUpper.ReadOnly = true;
             this.TextUpper.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.TextUpper.Size = new System.Drawing.Size(450, 111);
+            this.TextUpper.Size = new System.Drawing.Size(470, 111);
             this.TextUpper.TabIndex = 0;
             // 
             // CalcLabel

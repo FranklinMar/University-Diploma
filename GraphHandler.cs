@@ -19,12 +19,12 @@ namespace University_Diploma
         // UndirectedVertexPredecessorRecorderObserver
         public UndirectedGraph<Node, GraphEdge> Graph { get; private set; }
         //public Dictionary<GraphEdge, double> Probabilities { get; private set; }
-        public readonly List<List<Node>> NodePaths = new();
-        private readonly List<List<GraphEdge>> MinPaths = new();
-        private readonly List<List<GraphEdge>> MinCuts = new();
+        public List<List<Node>> NodePaths;// = new();
+        private List<List<GraphEdge>> MinPaths;// = new();
+        private List<List<GraphEdge>> MinCuts;// = new();
         //private UndirectedDepthFirstSearchAlgorithm<Node, GraphEdge> Algorithm;
         //private UndirectedVertexPredecessorRecorderObserver<Node, GraphEdge> Observer;
-        private readonly Random Generator = new ();
+        //private readonly Random Generator = new ();
 
         public GraphHandler(UndirectedGraph<Node, GraphEdge> graph/*, Dictionary<GraphEdge, double> probabilities*/)
         {
@@ -99,8 +99,8 @@ namespace University_Diploma
 
         public List<List<GraphEdge>> AllMinPaths(Node Source, Node Target)
         {
-            MinPaths.Clear();
-            NodePaths.Clear();
+            MinPaths = new();//.Clear();
+            NodePaths = new();//.Clear();
             Queue <List<Node>> Queue = new();
 
             List<Node> Path = new();
@@ -153,9 +153,9 @@ namespace University_Diploma
         // Karger's Algorithm
         public List<List<GraphEdge>> AllMinCuts(Node Source, Node Target)
         {
-            MinCuts.Clear();
+            MinCuts = new();//.Clear();
             //HashSet<Node> SourceSet = new();
-            List<List<GraphEdge>> Cuts = new();
+            //List<List<GraphEdge>> Cuts = new();
             Queue<List<Node>> Queue = new();
             //UndirectedGraph<Node, Edge<Node>> graph = Graph.Clone();
 
@@ -193,7 +193,7 @@ namespace University_Diploma
                 {
                     CurrentCut.AddRange(Graph.AdjacentEdges(Node).Where(Edge => !(CurrentSet.Contains(Edge.Source) && CurrentSet.Contains(Edge.Target))));
                 }
-                Cuts.Add(CurrentCut);
+                MinCuts.AddUnique(CurrentCut);
 
                 //Console.Write("\nCurrent Cut: ");
                 //CurrentCut.ForEach((Edge) => Console.Write($"P[{Edge.Source.Label}-{Edge.Target.Label}] |"));
@@ -229,10 +229,10 @@ namespace University_Diploma
                 Cuts.Add(CurrentCut);*/
             }
             //MinCuts.AddRange(Cuts);
-            foreach (var Cut in Cuts)
+            /*foreach (var Cut in Cuts)
             {
                 MinCuts.AddUnique(Cut);
-            }
+            }*/
             /*foreach (List<GraphEdge> Cut in Cuts)
             {
                 if (Cuts.Any(OtherCut.All()))

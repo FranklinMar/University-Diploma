@@ -290,6 +290,7 @@ namespace University_Diploma
 
         public void PrintMinPaths()
         {
+            GraphHandler.AllMinPaths(Source, Target);
             TextPaths.Text = "";
             StringBuilder Builder = new();
             //GraphEdge Edge;

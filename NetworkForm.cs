@@ -21,7 +21,7 @@ using Newtonsoft.Json.Linq;
 
 namespace University_Diploma
 {
-    public partial class ModelForm : Form
+    public partial class NetworkForm : Form
     {
         // UndirectedGraph<Node, Edge<Node>> Graph;
         private readonly ProxyController Proxy;
@@ -41,7 +41,7 @@ namespace University_Diploma
             Console.OutputEncoding = Encoding.UTF8;
         }
 
-        public ModelForm()
+        public NetworkForm()
         {
             //AllocateConsole();
             InitializeComponent();
