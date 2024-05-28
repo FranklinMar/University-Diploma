@@ -21,13 +21,13 @@ namespace University_Diploma
             LargeChange = 5;
             SmallChange = 1;
             Value = (int)(Edge.Probability * 100);
-            Label.Text = string.Format("{0:N2}", Edge.Probability);
+            Label.Text = string.Format("{0:N2}", Edge.Probability).Replace(',', '.');
         }
 
         public void ChangeValue()
         {
             Edge.Probability = Value / 100.0;
-            Label.Text = string.Format("{0:N2}", Edge.Probability);
+            Label.Text = string.Format("{0:N2}", Edge.Probability).Replace(',', '.');
         }
     }
 }

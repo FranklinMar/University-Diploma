@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace University_Diploma
@@ -14,13 +10,11 @@ namespace University_Diploma
         public string ID { get; private set; }
         [XmlAttribute("label")]
         public string Label { get; set; }
-        //public bool Pole { get; private set; }// = false;
 
-        public Node(string id, string label/*, bool pole = false*/)
+        public Node(string id, string label)
         {
             ID = id;
             Label = label;
-            //Pole = pole;
         }
 
         public int CompareTo(object obj)

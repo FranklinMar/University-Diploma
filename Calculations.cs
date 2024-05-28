@@ -8,16 +8,19 @@ using MathNet.Symbolics;
 using Expression = MathNet.Symbolics.SymbolicExpression;
 using ScottPlot;
 using ScottPlot.WinForms;
+using ScottPlot.Plottables;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace University_Diploma
 {
+    public delegate void Calculation();
     public partial class Calculations : Form
     {
+        public GraphHandler GraphHandler { get; private set; }
         private FormsPlot FormPlot;
         private bool OldPaths = false;
         private bool OldCuts = false;
-        public GraphHandler GraphHandler { get; private set; }
         private List<List<GraphEdge>> _MinPaths;
         private List<List<GraphEdge>> MinPaths {
             get {
@@ -84,13 +87,20 @@ namespace University_Diploma
                 _target = value;
             }
         }
-        public Calculations(GraphHandler Handler/*, Node Source = null, Node Target = null*/)
+
+        private readonly Dictionary<string, bool> Modes = new(){{ "Ezari-Proshan", false }, { "Precise", false }};
+        //private string LastMode = "";
+        private Calculation Function;
+        private readonly string PEdgeRegex = @"P\[.*?\]";
+        private readonly string EdgeRegex = @"\[.*?\]";
+
+        public Calculations(GraphHandler Handler)
         {
             GraphHandler = Handler;
-            //this.Source = Source;
-            //this.Target = Target;
             InitializeComponent();
+            ModeBox.Items.AddRange(Modes.Keys.ToArray());
         }
+
         private void SetUpPlot()
         {
             Plot Plot = FormPlot.Plot;
@@ -98,39 +108,125 @@ namespace University_Diploma
             Plot.YLabel("Network connectivity");
             Plot.Title("Network Connectivity assesment");
             Plot.ShowLegend();
-            Plot.FigureBackground.Color = Color.FromHex("#181818");
-            Plot.DataBackground.Color = Color.FromHex("#1f1f1f");
-            Plot.Axes.Color(Color.FromHex("#d7d7d7"));
-            Plot.Grid.MajorLineColor = Color.FromHex("#404040");
-            Plot.Legend.BackgroundColor = Color.FromHex("#404040");
-            Plot.Legend.FontColor = Color.FromHex("#d7d7d7");
-            Plot.Legend.OutlineColor = Color.FromHex("#d7d7d7");
-            Plot.Axes.SetLimits(0, 1, 0, 1);
-            //Plot.
-            //var Function = new Func<double, double>((x) => x);
-            //Plot.Add.Function(Function);
+            Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#181818");
+            Plot.DataBackground.Color = ScottPlot.Color.FromHex("#1f1f1f");
+            Plot.Axes.Color(ScottPlot.Color.FromHex("#d7d7d7"));
+            Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#404040");
+            Plot.Legend.BackgroundColor = ScottPlot.Color.FromHex("#404040");
+            Plot.Legend.FontColor = ScottPlot.Color.FromHex("#d7d7d7");
+            Plot.Legend.OutlineColor = ScottPlot.Color.FromHex("#d7d7d7");
+            Plot.Axes.SetLimits(-0.2, 1.2, -0.2, 1.2);
+            Plot.ZoomRectangle.VerticalSpan = false;
+            Plot.ZoomRectangle.HorizontalSpan = false;
         }
 
-        private void RefreshData()
+        private void CalcClick(object sender, EventArgs e)
         {
             PrintMinPaths();
             PrintMinCuts();
-            double UpperLimit = EzariProshanUpperLimit(out string Upper);
-            double LowerLimit = EzariProshanLowerLimit(out string Lower);
-            Upper = Regex.Replace(Upper, @"P\[.*?\]", "x");
-            Lower = Regex.Replace(Lower, @"P\[.*?\]", "x");
-            ConstructPlot(Lower, Upper);
-            LowerResult.Text = LowerLimit.ToString();
-            UpperResult.Text = UpperLimit.ToString();
+            Function();
+            Modes[ModeBox.SelectedItem.ToString()] = true;
+            //LastMode = Mode;
         }
 
-        private void ConstructPlot(params string[] Funcs)
+        private void ModeChanged(object sender, EventArgs e)
+        {
+            string Mode = (string)ModeBox.SelectedItem;
+            if (Mode == "Ezari-Proshan")
+            {
+                LowerResult.Show();
+                CalcLabel2.Show();
+                UpperResult.Show();
+                PreciseResult.Hide();
+                TextLower.Show();
+                LowerLabel.Show();
+                TextUpper.Show();
+                UpperLabel.Show();
+                TextPrecise.Hide();
+                PreciseLabel.Hide();
+                Function = EzariProshanData;
+            }
+            else if (Mode == "Precise")
+            {
+                LowerResult.Hide();
+                CalcLabel2.Hide();
+                UpperResult.Hide();
+                PreciseResult.Show();
+                TextLower.Hide();
+                LowerLabel.Hide();
+                TextUpper.Hide();
+                UpperLabel.Hide();
+                TextPrecise.Show();
+                PreciseLabel.Show();
+                Function = PreciseData;
+            }
+        }
+
+        private void EzariProshanData()
+        {
+            //if (LastMode.Equals(ModeBox.SelectedItem))
+            CheckPlot();
+            double UpperLimit = EzariProshanUpperLimit(out string Upper);
+            double LowerLimit = EzariProshanLowerLimit(out string Lower);
+            Upper = Regex.Replace(Upper, PEdgeRegex, "x");
+            Lower = Regex.Replace(Lower, PEdgeRegex, "x");
+            var Funcs = new[] { Lower, Upper };
+            var Legends = new[] { "Lower Ezari-Proshan", "Upper Ezari-Proshan" };
+            ConstructPlot(Funcs, Legends);
+            LowerResult.Text = LowerLimit.ToString();
+            UpperResult.Text = UpperLimit.ToString();
+            FormPlot.Refresh();
+            //FormPlot.Plot.Legend.ManualItems.Add();
+        }
+
+        private void PreciseData()
+        {
+            CheckPlot();
+            double Result = PreciseCalculate(out string Func);
+            Func = Regex.Replace(Func, PEdgeRegex, "x");
+            Func <double, double> Function = new(x => {
+                if (x <= 0)
+                {
+                    return 0;
+                }
+                if (x >= 1)
+                {
+                    return 1;
+                }
+                string Funct = Func.Replace("x", x.ToString()).Replace(',', '.');
+                return Convert.ToDouble(new DataTable().Compute(Funct, null));
+            });
+            FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
+            FP.LegendText = "Precise Function";
+            FormPlot.Refresh();
+        }
+        private void CheckPlot()
+        {
+            if (Modes[ModeBox.SelectedItem.ToString()])
+            {
+                FormPlot.Plot.Clear();
+                foreach (var Key in Modes)
+                {
+                    Modes[Key.Key] = false;
+                }
+            }
+        }
+
+        private void ConstructPlot(string[] Funcs, string[] Legends = null)
         {
             Func<double, double> Function;
-            foreach (var Item in Funcs)
+            int i = 0;
+            if (Legends != null)
             {
-                Function = new(x =>
+                if (Legends.Length != Funcs.Length)
                 {
+                    throw new ArgumentException("Arrays of Functions and Legends must be equal in size", nameof(Legends));
+                }
+            }
+            for (; i < Funcs.Length; i++)
+            {
+                //MessageBox.Show(i.ToString());
+                Function = new(x => {
                     if (x <= 0)
                     {
                         return 0;
@@ -139,7 +235,7 @@ namespace University_Diploma
                     {
                         return 1;
                     }
-                    string Func = Item.Replace("x", x.ToString()).Replace(',', '.');
+                    string Func = Funcs[i].Replace("x", x.ToString()).Replace(',', '.');
                     //MessageBox.Show(Func);
                     //MessageBox.Show(new DataTable().Compute(Func, null).GetType().ToString());
                     return Convert.ToDouble(new DataTable().Compute(Func, null));
@@ -152,8 +248,270 @@ namespace University_Diploma
                         return 1;
                     return Expression.Parse(Item).Compile("x")(x);
                 };*/
-                FormPlot.Plot.Add.Function(Function);
+                FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
+                if (Legends != null)
+                {
+                    FP.LegendText = Legends[i];
+                }
             }
+            i = 0;
+        }
+
+        private double PreciseCalculate(out string expression)
+        {
+            Dictionary<GraphEdge, Expression> Variables = new();
+            var Edges = GraphHandler.Graph.Edges.ToArray();
+            foreach (GraphEdge Edge in Edges)
+            {
+                Variables.Add(Edge, Expression.Variable($"P[{Edge.Source.Label}—{Edge.Target.Label}]"));
+            }
+            //Code for calculating precise equation of graph structure
+            HashSet<string> BinaryEdges = new();
+            StringBuilder Builder;
+            foreach (var Path in MinPaths)
+            {
+                Builder = new();
+                // Code for interpreting every Edge in binary? with state of Failed(0) and Success(1)
+                foreach (var Edge in Edges)
+                {
+                    // If Edge is in MinPaths - assign 2 as immutable
+                    Builder.Append(Path.Contains(Edge) ? '2' : '0');
+                }
+                // Find every possible binary combination
+                BinaryEdges.Add(Builder.ToString().Replace('2', '1'));
+                while (Builder.ToString().Any(Ch => Ch == '0'))
+                {
+                    int i = 0;
+                    for (; i < Builder.Length && (Builder[i] == '1' || Builder[i] == '2'); i++)
+                    {
+                        if (Builder[i] == '1')
+                        {
+                            Builder[i] = '0';
+                        }
+                    }
+                    Builder[i] = '1';
+                    BinaryEdges.Add(Builder.ToString().Replace('2', '1'));
+                }
+            }
+            // Calculate the formula, where '1' == p, and '-' == q
+            Expression Product;
+            Expression Result = 0;
+            foreach (string BinaryEdge in BinaryEdges)
+            {
+                Product = 1;
+                for (int i = 0; i < BinaryEdge.Length; i++)
+                {
+                    //var Edge = Edges[i].Probability;
+                    Product *= (BinaryEdge[i] == '1' ? Variables[Edges[i]] : (1 - Variables[Edges[i]]));
+                }
+                Result += Product;
+            }
+            expression = Result.ToString();
+            PrintExpression(TextPrecise, expression);
+            Dictionary<string, FloatingPoint> Values = new();
+            foreach (KeyValuePair<GraphEdge, Expression> Pair in Variables)
+            {
+                Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
+            }
+            return Result.Evaluate(Values).RealValue;
+        }
+
+        private void PrintExpression(RichTextBox TextBox, string Expression)
+        {
+            TextBox.Text = Expression.Replace("*", " × ").Replace("-", " — ")
+                .Replace("[", "").Replace("]", "");
+            var Match = Regex.Match(Expression, EdgeRegex);
+            while (Match.Success)
+            {
+                int Index = TextBox.Text.IndexOf(Match.Value.Replace("[", "").Replace("]", ""));
+                TextBox.Select(Index, Match.Length - 2);
+                TextBox.SelectionFont = new(TextBox.Font.Name, 8);
+                TextBox.SelectionCharOffset = -5;
+                Match = Match.NextMatch();
+            }
+        }
+
+        /*private static string Superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻";
+        private static char GetSuperscript(int number)
+        {
+            if (number < 0)
+                return Superscripts[^1];
+            return Superscripts.ElementAt(number);
+        }
+        private static string Subscripts = "₀₁₂₃₄₅₆₇₈₉₋";
+        private static char GetSubscript(int number)
+        {
+            if (number < 0)
+                return Subscripts[^1];
+            return Subscripts.ElementAt(number);
+        }*/
+
+        public void PrintMinPaths()
+        {
+            GraphHandler.AllMinPaths(Source, Target);
+            TextPaths.Text = "";
+            StringBuilder Builder = new();
+            //GraphEdge Edge;
+            Node Node;
+            foreach(List<Node> Path in GraphHandler.NodePaths)
+            {
+                for(int i = 0; i < Path.Count; i++) 
+                {
+                    Node = Path[i];
+                    Builder.Append($"P[{Node.Label}]");
+                    if (i < Path.Count - 1)
+                    {
+                        Builder.Append(" ➤ ");
+                    }
+                }
+                Builder.Append(Environment.NewLine);
+            }
+            PrintExpression(TextPaths, Builder.ToString());
+        }
+
+        public void PrintMinCuts()
+        {
+            TextCuts.Text = "";
+            StringBuilder Builder = new();
+            GraphEdge Edge;
+            foreach (List<GraphEdge> Cut in MinCuts)
+            {
+                for (int i = 0; i < Cut.Count; i++)
+                {
+                    Edge = Cut[i];
+                    Builder.Append($"P[{Edge.Source.Label}] — P[{Edge.Target.Label}]");
+                    if (i < Cut.Count - 1)
+                    {
+                        Builder.Append(" | ");
+                    }
+                }
+                Builder.Append(Environment.NewLine);
+            }
+            PrintExpression(TextCuts, Builder.ToString());
+        }
+
+        public double EzariProshanUpperLimit(out string expression)
+        {
+            Dictionary<GraphEdge, Expression> Variables = new();
+            var Edges = GraphHandler.Graph.Edges;
+            foreach (GraphEdge Edge in Edges)
+            {
+                Variables.Add(Edge, Expression.Variable($"P[{Edge.Source.Label}—{Edge.Target.Label}]"));
+            }
+            Expression Product;
+            Expression Result = 1;
+            // 1 - П_(1<=j<=M) (1 - П_(i in A) (p_i))
+            foreach (var Path in MinPaths)
+            {
+                Product = 1;
+                foreach (GraphEdge Edge in Path)
+                {
+                    Product *= Variables[Edge];
+                }
+                Result *= (1 - Product);
+            }
+            Result = 1 - Result;
+            //Result.Compile();
+            expression = Result.ToString();
+            PrintExpression(TextUpper, expression);
+            Dictionary<string, FloatingPoint> Values = new();
+            foreach (KeyValuePair<GraphEdge, Expression> Pair in Variables)
+            {
+                Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
+            }
+            return Result.Evaluate(Values).RealValue;
+        }
+
+        public double EzariProshanLowerLimit(out string expression)
+        {
+            Dictionary<GraphEdge, Expression> Variables = new();
+            var Edges = GraphHandler.Graph.Edges;
+            foreach (GraphEdge Edge in Edges)
+            {
+                Variables.Add(Edge, Expression.Variable($"P[{Edge.Source.Label}—{Edge.Target.Label}]"));
+            }
+            Expression Product;
+            Expression Result = 1;
+            // П_(1<=k<=N) (1 - П_(i in B) (q_i))
+            foreach (var Cut in MinCuts)
+            {
+                Product = 1;
+                foreach (GraphEdge Edge in Cut)
+                {
+                    Product *= (1 - Variables[Edge]);
+                }
+                Result *= (1 - Product);
+            }
+            expression = Result.ToString();
+            PrintExpression(TextLower, expression);
+            Dictionary<string, FloatingPoint> Values = new();
+            foreach(KeyValuePair<GraphEdge, Expression> Pair in Variables)
+            {
+                Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
+            }
+            return Result.Evaluate(Values).RealValue;
+        }
+
+        private void Loaded(object sender, EventArgs e)
+        {
+            OnGraphChanged();
+            FormPlot = new();
+            FormPlot.Dock = DockStyle.Fill;
+            PlotPanel.Controls.Add(FormPlot);
+            SetUpPlot();
+            var Edges = GraphHandler.Graph.Edges;
+            //List<FlowLayoutPanel> Panels = new();
+            foreach (GraphEdge Edge in Edges)
+            {
+                FlowLayoutPanel Panel = new();
+                Panel.AutoSize = true;
+                Panel.FlowDirection = FlowDirection.TopDown;
+                FlowLayoutPanel SmallerPanel = new();
+                SmallerPanel.AutoSize = true;
+                SmallerPanel.FlowDirection = FlowDirection.LeftToRight;
+                SmallerPanel.BorderStyle = BorderStyle.FixedSingle;
+                System.Windows.Forms.Label Label = new();
+                Label.AutoSize = true;
+                Label.TextAlign = ContentAlignment.TopCenter;
+                Label.BackColor = System.Drawing.Color.White;
+                Label.ForeColor = System.Drawing.Color.Black;
+                Label.Font = new Font("Roboto", 11);
+                Label.Text = $"P[{Edge.Source.Label}-{Edge.Target.Label}]";
+                SmallerPanel.Controls.Add(Label);
+                System.Windows.Forms.Label Prob = new();
+                Prob.AutoSize = true;
+                Prob.TextAlign = ContentAlignment.TopCenter;
+                Prob.ForeColor = System.Drawing.Color.White;
+                Prob.Font = new Font("Roboto", 13);
+                //Prob.Text = string.Format("{0:N2}", Edge.Probability).Replace(',', '.');
+                SmallerPanel.Controls.Add(Prob);
+                EdgeBar Bar = new(Edge, Prob);
+                Bar.AutoSize = true;
+                Panel.Controls.Add(SmallerPanel);
+                Panel.Controls.Add(Bar);
+                var Event = new EventHandler((sender, args) =>
+                {
+                    EdgeBar This = sender as EdgeBar;
+                    This.ChangeValue();
+                    //ChangeFrontEndProbability(This.Edge);
+                    //Browser.ChangeFrontEndProbability(This.Edge);
+                });
+                Bar.Scroll += Event;
+                Bar.ValueChanged += Event;
+                ProbPanel.Controls.Add(Panel);
+                //Panels.Add(Panel);
+            }
+            ModeBox.SelectedIndex = 0;
+            /*if (ProbPanel.InvokeRequired)
+            {
+                ProbPanel.Invoke(new MethodInvoker(delegate {
+                    ProbPanel.Controls.Clear();
+                    foreach (var Panel in Panels)
+                    {
+                        ProbPanel.Controls.Add(Panel);
+                    }
+                }));
+            }*/
         }
 
         private void OnGraphChanged()
@@ -202,61 +560,6 @@ namespace University_Diploma
                 TargetBox.Enabled = false;
                 TargetBox.Text = "";
             }
-            /*if (SourceBox.InvokeRequired)
-            {
-                SourceBox.Invoke(new MethodInvoker(delegate {
-                    SourceBox.Items.Clear();
-                    SourceBox.Items.AddRange(Nodes);
-                    if (SourceBox.Items.Count != 0)
-                    {
-                        SourceBox.Enabled = true;
-                        int Index = SourceBox.Items.IndexOf(SourceBox.Text);
-                        if (Index != -1)
-                        {
-                            SourceBox.SelectedIndex = Index;
-                            SourceBox.SelectedItem = SourceBox.Items[Index];
-                        }
-                        else
-                        {
-                            SourceBox.Text = "";
-                        }
-                    }
-                    else
-                    {
-                        SourceBox.Enabled = false;
-                        SourceBox.Text = "";
-                    }
-                }));
-            }*/
-            //SourceBox.SelectedIndex = null;
-
-            //if (TargetBox.Items.Count != 0)
-            /*if (TargetBox.InvokeRequired)
-            {
-                TargetBox.Invoke(new MethodInvoker(delegate {
-                    TargetBox.Items.Clear();
-                    TargetBox.Items.AddRange(Nodes);
-                    if (TargetBox.Items.Count != 0)
-                    {
-                        TargetBox.Enabled = true;
-                        int Index = TargetBox.Items.IndexOf(TargetBox.Text);
-                        if (Index != -1)
-                        {
-                            TargetBox.SelectedIndex = Index;
-                            TargetBox.SelectedItem = TargetBox.Items[Index];
-                        }
-                        else
-                        {
-                            TargetBox.Text = "";
-                        }
-                    }
-                    else
-                    {
-                        TargetBox.Enabled = false;
-                        TargetBox.Text = "";
-                    }
-                }));
-            }*/
         }
 
         private void SelectionChanged(object sender, EventArgs e)
@@ -272,168 +575,5 @@ namespace University_Diploma
                 Target = GraphHandler.Graph.Vertices.Where(Node => Node.Label.Equals(TargetBox.SelectedItem)).First();
             }
         }
-
-        /*private static string Superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻";
-        private static char GetSuperscript(int number)
-        {
-            if (number < 0)
-                return Superscripts[^1];
-            return Superscripts.ElementAt(number);
-        }
-        private static string Subscripts = "₀₁₂₃₄₅₆₇₈₉₋";
-        private static char GetSubscript(int number)
-        {
-            if (number < 0)
-                return Subscripts[^1];
-            return Subscripts.ElementAt(number);
-        }*/
-
-        public void PrintMinPaths()
-        {
-            GraphHandler.AllMinPaths(Source, Target);
-            TextPaths.Text = "";
-            StringBuilder Builder = new();
-            //GraphEdge Edge;
-            Node Node;
-            foreach(List<Node> Path in GraphHandler.NodePaths)
-            {
-                for(int i = 0; i < Path.Count; i++) 
-                {
-                    Node = Path[i];
-                    Builder.Append($"P[{Node.Label}]");
-                    if (i < Path.Count - 1)
-                    {
-                        Builder.Append(" ➤ ");
-                    }
-                }
-                Builder.Append(Environment.NewLine);
-            }
-            TextPaths.Text = Builder.ToString();
-        }
-
-        public void PrintMinCuts()
-        {
-            TextCuts.Text = "";
-            StringBuilder Builder = new();
-            GraphEdge Edge;
-            foreach (List<GraphEdge> Cut in MinCuts)
-            {
-                for (int i = 0; i < Cut.Count; i++)
-                {
-                    Edge = Cut[i];
-                    Builder.Append($"P[{Edge.Source.Label}] — P[{Edge.Target.Label}]");
-                    if (i < Cut.Count - 1)
-                    {
-                        Builder.Append(" | ");
-                    }
-                }
-                Builder.Append(Environment.NewLine);
-            }
-            TextCuts.Text = Builder.ToString();
-        }
-
-        public double EzariProshanUpperLimit(out string expression)
-        {
-            Dictionary<GraphEdge, Expression> Variables = new();
-            var Edges = GraphHandler.Graph.Edges;
-            foreach (GraphEdge Edge in Edges)
-            {
-                Variables.Add(Edge, Expression.Variable($"P[{Edge.Source.Label}—{Edge.Target.Label}]"));
-            }
-            Expression Product;
-            Expression Result = 1;
-            // 1 - П_(1<=j<=M) (1 - П_(i in A) (p_i))
-            foreach (var Path in MinPaths)
-            {
-                Product = 1;
-                foreach (GraphEdge Edge in Path)
-                {
-                    Product *= Variables[Edge];
-                }
-                Result *= (1 - Product);
-            }
-            Result = 1 - Result;
-            expression = Result.ToString();
-            TextUpper.Text = Result.ToString().Replace("*", " × ").Replace("-", " — ");
-            //StringBuilder Builder = new();
-            Dictionary<string, FloatingPoint> Values = new();
-            foreach (KeyValuePair<GraphEdge, Expression> Pair in Variables)
-            {
-                Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
-            }
-            return Result.Evaluate(Values).RealValue;
-        }
-
-        public double EzariProshanLowerLimit(out string expression)
-        {
-            Dictionary<GraphEdge, Expression> Variables = new();
-            var Edges = GraphHandler.Graph.Edges;
-            foreach (GraphEdge Edge in Edges)
-            {
-                Variables.Add(Edge, Expression.Variable($"P[{Edge.Source.Label}—{Edge.Target.Label}]"));
-            }
-            Expression Product;
-            Expression Result = 1;
-            // П_(1<=k<=N) (1 - П_(i in B) (q_i))
-            foreach (var Cut in MinCuts)
-            {
-                Product = 1;
-                foreach (GraphEdge Edge in Cut)
-                {
-                    Product *= (1 - Variables[Edge]);
-                }
-                Result *= (1 - Product);
-            }
-            expression = Result.ToString();
-            TextLower.Text = Result.ToString().Replace("*", " × ").Replace("-", " — ");
-            //StringBuilder Builder = new();
-            Dictionary<string, FloatingPoint> Values = new();
-            foreach(KeyValuePair<GraphEdge, Expression> Pair in Variables)
-            {
-                Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
-            }
-            return Result.Evaluate(Values).RealValue;
-        }
-
-        private void Loaded(object sender, EventArgs e)
-        {
-            //RefreshData();
-            OnGraphChanged();
-            FormPlot = new();
-            FormPlot.Dock = DockStyle.Fill;
-            PlotPanel.Controls.Add(FormPlot);
-            SetUpPlot();
-        }
-
-        private void CalcClick(object sender, EventArgs e)
-        {
-            RefreshData();
-        }
-
-        /*double LowerLimit = 1;
-        double UpperLimit = 1;
-        double MultiplyProbabilities;
-        // П_(1<=k<=N) (1 - П_(i in B) (q_i))
-        foreach (var Cut in MinCuts)
-        {
-            MultiplyProbabilities = 1;
-            foreach (GraphEdge Edge in Cut)
-            {
-                MultiplyProbabilities *= (1 - Edge.Probability*//*Probabilities[Edge]*//*);
-            }
-            LowerLimit *= (1 - MultiplyProbabilities);
-        }
-        // 1 - П_(1<=j<=M) (1 - П_(i in A) (p_i))
-        foreach (var Path in MinPaths)
-        {
-            MultiplyProbabilities = 1;
-            foreach (GraphEdge Edge in Path)
-            {
-                MultiplyProbabilities *= Edge.Probability;//Probabilities[Edge];
-            }
-            UpperLimit *= (1 - MultiplyProbabilities);
-        }
-        UpperLimit = 1 - UpperLimit;
-        MessageBox.Show($"{LowerLimit} <= M Ф (X) <= {UpperLimit}", "Calculations complete!");*/
     }
 }

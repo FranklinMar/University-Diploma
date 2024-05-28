@@ -4,8 +4,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
-    <!--<script type="module">
-    </script>-->
     <script src="./cytoscape.min.js"></script>
     <script src="./cytoscape-context-menus.js"></script>
     <script src="./lodash.js"></script>
@@ -19,20 +17,17 @@
             padding: 0;
             font-family: "Roboto", sans-serif;
         }
-
         @media (prefers-reduced-motion: no-preference) {
             :root {
                 scroll-behavior: smooth;
             }
         }
-
         html {
             max-width: 100vw;
             max-height: 100vh;
             height: 100%;
             width: 100%;
         }
-
         body {
             position: absolute;
             top: 0;
@@ -41,14 +36,13 @@
             max-height: 100%;
             max-width: 100%;
             height: 100%;
-            width: 100%
+            width: 100%;
+            overflow: hidden;
         }
-
         #cy {
             width: 99.5%;
             height: 99.5%;
         }
-
         .context-menu {
             background-color: #ffffff;
             box-shadow: 0 0 20px rgba(37, 40, 42, 0.22);
@@ -57,11 +51,7 @@
             padding: 0.3em 0.2em;
             font-size: 0.8rem;
             display: flex;
-            /*position: fixed;
-            border: 1 solid #808080;
-            visibility: hidden;*/
         }
-
         .item {
             display: flex;
             padding: 0.3em 1.2em;
@@ -70,12 +60,10 @@
             width: 100%;
             text-align: left;
         }
-
         .item:hover {
             background-color: rgba(44, 141, 247, 0.2);
             cursor: pointer;
         }
-
         .cysWrapper.mouseover {
             cursor: pointer;
         }
@@ -83,15 +71,13 @@
 </head>
 <body>
     <div id="cy"></div>
-    <script>
-var Body = document.querySelector('body');
-//var ID = 0;
-//var EdgeID = 0;
-var DivCy = document.getElementById('cy');
+<script>
 var Cy;
-//const Unique = new Set();
+var Body = document.querySelector('body');
+var DivCy = document.getElementById('cy');
 let Source = crypto.randomUUID();
 let Target = crypto.randomUUID();
+let ChangeGraphBool = true;
 
 // Restricts input for the given textbox to the given inputFilter function.
 function setInputFilter(textbox, inputFilter, errMsg) {
@@ -181,8 +167,6 @@ function CreateInput(ID, Pos, Value, Remove) {
         if (Input.value === "") {
             if (Remove) {
                 Cy.remove(`#${ID}`);
-            } else {
-                //Cy.getElementById(ID).attr('label', Value);
             }
         } else {
             Cy.getElementById(ID).attr('label', Input.value);
@@ -194,29 +178,30 @@ function CreateInput(ID, Pos, Value, Remove) {
     return Input;
 }
 
-function SendGraph() {
-    let Result = {};
-    Result['nodes'] = [];
-    Result['edges'] = [];
-    let Elements = Cy.json().elements;
-    let Nodes = Elements.nodes;
-    if (Nodes !== null && Nodes !== undefined) {
-        for (let Node of Elements.nodes) {
-            Result['nodes'].push(Node.data);
+async function SendGraph() {
+    if (ChangeGraphBool) {
+        let Result = {};
+        Result['nodes'] = [];
+        Result['edges'] = [];
+        let Elements = Cy.json().elements;
+        let Nodes = Elements.nodes;
+        if (Nodes !== null && Nodes !== undefined) {
+            for (let Node of Elements.nodes) {
+                Result['nodes'].push(Node.data);
+            }
         }
-    }
-    let Edges = Elements.edges;
-    if (Edges !== null && Edges !== undefined) {
-        for (let Edge of Elements.edges) {
-            Result['edges'].push(Edge.data);
+        let Edges = Elements.edges;
+        if (Edges !== null && Edges !== undefined) {
+            for (let Edge of Elements.edges) {
+                Result['edges'].push(Edge.data);
+            }
         }
+        console.log(Result);
+        Proxy.recieveGraph(JSON.stringify(Result));
     }
-    console.log(Result);
-    Proxy.recieveGraph(JSON.stringify(Result));
 }
 
-function RefreshEdge(NewEdge) {
-    //console.log(NewEdge);
+async function RefreshEdge(NewEdge) {
     var Edges = Cy.edges();
     for (let Edge of Edges) {
         if (Edge.data('source') === NewEdge.source && Edge.data('target') === NewEdge.target) {
@@ -227,48 +212,19 @@ function RefreshEdge(NewEdge) {
 }
 
 function RefreshGraph(JSON) {
-    //var Json = Cy.json().elements;
-    Cy.elements().remove();
-    //console.log(Json);
+    //Cy.elements().remove();
+    Cy.nodes().remove();
     for (let Node of JSON.nodes) {
-        //console.log(node);
         let node = { group: 'nodes', data: Node };
-        //Node.group = 'nodes';
         Cy.add(node);
-        /*console.log(Node);
-        let Result = Json.nodes.find(node => node.id === Node.id);
-        if (Result) {
-            Result.label = Node.label;
-        } else {
-            Cy.add({
-                group: 'nodes',
-                id: Node.id,
-                label: Node.label
-            });
-        }*/
     }
     for (let Edge of JSON.edges) {
         let edge = { group: 'edges', data: Edge }
         Edge.id = crypto.randomUUID();
-        //Edge.group = 'edges';
-        console.log(edge);
+        //console.log(edge);
         Cy.add(edge);
-        /*let Result = Json.edges.find(edge => {
-            return edge.source === Edge.source && edge.target === Edge.target
-        });
-        if (Result) {
-            Result.label = Edge.label;
-        } else {
-            Cy.add({
-                group: 'edges',
-                id: crypto.randomUUID(),
-                source: Edge.source,
-                target: Edge.target,
-                label: Edge.label
-            });
-        }*/
     }
-    //Cy.Json(NewJson);
+    //Cy.json({ elements: JSON });
     let Options = {
         name: 'circle',
 
@@ -278,7 +234,7 @@ function RefreshGraph(JSON) {
         avoidOverlap: true, // prevents node overlap, may overflow boundingBox and radius if not enough space
         nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
         spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
-        radius: undefined, // the radius of the circle
+        radius: 100, // the radius of the circle
         startAngle: 3 / 2 * Math.PI, // where nodes start in radians
         sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
         clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
@@ -290,7 +246,6 @@ function RefreshGraph(JSON) {
         ready: undefined, // callback on layoutready
         stop: undefined, // callback on layoutstop
         transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
-
     };
 
     Cy.layout(Options).run();
@@ -321,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 style: {
                     'background-color': '#666',
                     'label': 'data(label)',
-                    //'cursor': 'pointer',
                     "color": "#fff",
                     "text-outline-color": "#888",
                     "text-outline-width": 3
@@ -347,32 +301,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     "color": "#fff",
                     "text-outline-color": "#000",
                     "text-outline-width": 3
-                    /*"text-margin-x": "0px",
-                    "text-margin-y": "0px",
-                    "text-background-opacity": 1,
-                    "color": "#fff",
-                    "text-background-color": "#000",
-                    "text-valign": "top",
-                    "text-halign": "left"*/
                 }
             },
         ],
         layout: {
-            name: 'breadthfirst', //'concentric'
+            name: 'breadthfirst',
             concentric: function (n) { return n.id() === 'j' ? 200 : 0; },
             levelWidth: function (nodes) { return 100; },
             minNodeSpacing: 100
-            //rows: 1
         }
     });
     //Cy.userPanningEnabled(false);
     //Cy.userZoomingEnabled(true);
     Cy.pan(renderedPosition = { x: 0, y: 0 });
-    Cy.zoom({
+    /*Cy.zoom({
         level: 1,
-    });
-    Cy.minZoom(1);
-    Cy.maxZoom(3);
+    });*/
+    //Cy.minZoom(1);
+    Cy.maxZoom(2);
+    //Cy.zoom({ level: 0.4 });
     Cy.on('cxttap', function (event) {
         if (AllSelected('node')) {
             ContextMenu.hideMenuItem('select-all-nodes');
@@ -392,55 +339,25 @@ document.addEventListener('DOMContentLoaded', function () {
     var EdgeHan = Cy.edgehandles({
         snap: false
     });
-
-    /*var Enable = function() {
-        EdgeHan.enableDrawMode();
-    }
-
-    var Disable = function() {
-        EdgeHan.disableDrawMode();
-    }*/
-   
     var ContextMenu = Cy.contextMenus({
         menuItems: [
             {
                 id: 'remove',
                 content: 'Remove',
-                //tooltipText: 'Remove element',
-                //image: { src: "assets/remove.svg", width: 12, height: 12, x: 6, y: 4 },
-                selector: 'node, edge',//'node[^pole], edge',
+                selector: 'node, edge',
                 onClickFunction: function (event) {
                     var target = event.target || event.cyTarget;
                     removed = target.remove();
-
-                    //ContextMenu.showMenuItem('undo-last-remove');
                 },
                 hasTrailingDivider: true
             },
-            /*{
-                id: 'undo-last-remove',
-                content: 'Undo last remove',
-                selector: 'node, edge',
-                show: false,
-                coreAsWell: true,
-                onClickFunction: function (event) {
-                    if (removed) {
-                        removed.restore();
-                    }
-                    //ContextMenu.hideMenuItem('undo-last-remove');
-                },
-                hasTrailingDivider: true
-            },*/
             {
                 id: 'add-node',
                 content: 'Add node',
-                //tooltipText: 'Add new node',
-                //image: { src: "assets/add.svg", width: 12, height: 12, x: 6, y: 4 },
                 coreAsWell: true,
                 onClickFunction: function (event) {
                     let ID = crypto.randomUUID();
                     var Data = {
-                        //group: 'nodes',
                         id: ID
                     };
                     var Pos = event.position || event.cyPosition;
@@ -454,20 +371,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                     let Input = CreateInput(ID, Pos, "", true);
                     setInputFilter(Input, (value) => {
-                        //console.log(Cy.json());
-                        //let Nodes = Cy.json().elements.nodes;//Cy.nodes().map(node => node.data('label'));
-                        //console.log(`Current value: "${value}"`);
-                        //onsole.log(Nodes);
                         let Nodes = Cy.nodes().map(node => node.data('label'));
-                        //for (let i = 0; i < Nodes.length; i++) {
                         for (let Node of Nodes) {
-                            //console.log(Node);
                             value = value.trim();
-                            //console.log(`Modified value: "${value}"`);
-                            //console.log(`Current node:`);
-                            //console.log(Nodes[i].data);
-                            //console.log(`Current condition: ${Nodes[i].data.label === value }`);
-                            //if (Nodes[i].data.label === value) {
                             if (Node === value) {
                                 return false;
                             }
@@ -480,12 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 id: 'add-edge',
                 content: 'Add edge',
                 selector: 'node:hover',
-                //coreAsWell: true,
                 onClickFunction: function (event) {
                     let ID = crypto.randomUUID();
                     EdgeHan.start(event.target);
                     event.target.data('id', ID);
-                    //event.target.data('label', 0.0);
                 },
                 hasTrailingDivider: true
             },
@@ -544,9 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 id: 'change-probability',
                 content: 'Change probability',
-                //tooltipText: 'Remove element',
-                //image: { src: "assets/remove.svg", width: 12, height: 12, x: 6, y: 4 },
-                selector: 'edge',//'node[^pole], edge',
+                selector: 'edge',
                 onClickFunction: function (event) {
                     var target = event.target || event.cyTarget;
                     let Input = CreateInput(target.data('id'), target.midpoint(), target.data('label'));
@@ -592,9 +494,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // add class names to this list
         ],
     });
-    Cy.on('ehstart', function (event) {
-        //Cy.getElementById(event.target.data('id')).attr('label', "0.0");
-    });
     Cy.on('ehcomplete', function (event, sourceNode, targetNode, addedEdge) {
         for (let Value of Cy.edges('edge')) {
             if (Value.data('source') === addedEdge.data('source') &&
@@ -607,14 +506,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
         }
-        //var Pos = event.position || event.cyPosition;
-        //console.log(event);
-        //console.log(addedEdge);
-        //console.log(Cy.edges(`${addedEdge.data('id')}`));
         let Input = CreateInput(addedEdge.data('id'), addedEdge.midpoint(), "0.5");
-        //Input.type = "number";
-        /*Input.min = "0.0";
-        Input.max = "100.0";*/
         Input.step = "0.01"
         setInputFilter(Input, (value) => (value <= 1 && value >= 0), "Value must be in range from 0 to 1");
         setInputFilter(Input, (value) => (value !== "" && value !== null && value !== undefined && !value.match(/^-?[0-9]*[.][0-9]+$/)), "Value must be double number");
@@ -632,23 +524,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 UniqueElements.add(Edge);
             }
         });*/
-        //SendGraph();
     });
     Cy.on('add remove', 'node[label]', SendGraph);
     Cy.on('remove', 'edge[label]', SendGraph);
-    //Proxy.recieveGraph(`${{ "1": 1}}`);
-    //console.log(Cy.data());
-    /*Cy.on('mouseover', 'node', (event) => { console.log(event.target);event.target.classList.add('mouseover');});//Cy.getElementById('diagram-wrapper').css('cursor', 'pointer'));
-    Cy.on('mouseout', 'node', (event) => event.target.classList.remove('mouseover'));*/
-    /*Cy.on('mouseover', 'node', function (e) {
-        Cy.getElementById('diagram-wrapper').css('cursor', 'pointer');
-    });
-    Cy.on('mouseout', 'node', function (e) {
-        Cy.getElementById('diagram-wrapper').css('cursor', 'default');
-    });*/
     Cy.on('mouseover', 'node', () => DivCy.style.cursor = 'pointer');
     Cy.on('mouseout', 'node', () => DivCy.style.cursor = 'default');
-
 });
 </script>
 </body>
