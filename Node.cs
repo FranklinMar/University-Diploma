@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Xml.Serialization;
 
 namespace University_Diploma
@@ -44,8 +43,9 @@ namespace University_Diploma
             {
                 return -1;
             }
-            return 0;
-            /*Node Node = obj as Node;
+            Node Node = obj as Node;
+            return Label.CompareTo(Node.Label);
+            /*
             int Result = ID.CompareTo(Node.ID);
             if (Result != 0)
             {

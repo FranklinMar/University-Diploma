@@ -1,9 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using QuikGraph;
-using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Linq;
 using System.Windows.Forms;
+using Newtonsoft.Json.Linq;
+using QuikGraph;
 
 namespace University_Diploma
 {
@@ -11,7 +9,7 @@ namespace University_Diploma
     public delegate void NotifyNode(Node node);
     public class ProxyController
     {
-        public UndirectedGraph<Node, GraphEdge> Graph { get; private set; }// = new();
+        public UndirectedGraph<Node, GraphEdge> Graph { get; private set; }
         public event NotifyGraph GraphChanged;
         public event NotifyNode NodeChanged;
 
@@ -29,7 +27,6 @@ namespace University_Diploma
         public void RecieveGraph(string JSON)
         {
             JObject JSONObject = JObject.Parse(JSON);
-            //Graph.Clear();
             Graph = new();
             JToken[] edges = JSONObject.GetValue("edges").ToArray();
             JToken[] nodes = JSONObject.GetValue("nodes").ToArray();
@@ -44,34 +41,19 @@ namespace University_Diploma
             }
             foreach (JToken Edge in edges)
             {
-                //try
-                //{
-                    Node Source = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("source")));
-                    Node Target = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("target")));
-                    GraphEdge edge;
-                    //try
-                    //{
+                Node Source = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("source")));
+                Node Target = Graph.Vertices.First(node => node.ID.Equals(Edge.Value<string>("target")));
+                GraphEdge edge;
                 if (Edge.Value<string>("label") != null)
                 {
-                    //MessageBox.Show(.ToString());
                     edge = new(Source, Target, double.Parse(Edge.Value<string>("label").Replace(',', '.'), System.Globalization.CultureInfo.InvariantCulture));
                     Graph.AddEdge(edge);
                 }
-                    //}
-                    //catch (ArgumentException)
-                    //{
-                    //}
-                //}
-                //catch (InvalidOperationException)
-                //{
-                //    continue;
-                //}
             }
             GraphChanged?.Invoke(Graph);
         }
         public void RecieveNode(string JSON)
         {
-            //MessageBox.Show(JSON);
             JObject JNode = JObject.Parse(JSON);
             var Position = JNode.Value<JToken>("position");
             Point Point = new (Position.Value<double>("x"), Position.Value<double>("y"));

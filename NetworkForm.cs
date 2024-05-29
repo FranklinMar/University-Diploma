@@ -1,33 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
 using System.Data;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CefSharp;
 using CefSharp.WinForms;
 using CefSharp.SchemeHandler;
 using QuikGraph;
 using QuikGraph.Serialization;
-using System.Xml;
-using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
-using System.IO;
-using System.Threading;
 
 namespace University_Diploma
 {
     public partial class NetworkForm : Form
     {
         private readonly ProxyController Proxy;
-        //private readonly GraphHandler Handler;
         private readonly Dictionary<TabPage, UndirectedGraph<Node, GraphEdge>> Pages = new();
         private readonly string SessionPath = "./Session/";
         private readonly string GraphFileType = "*.graphml";
         private Rectangle CloseX = Rectangle.Empty;
-        //private TabPage _default;
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -43,7 +40,6 @@ namespace University_Diploma
             //AllocateConsole();
             InitializeComponent();
             Proxy = new(OnGraphRecieved, OnNodeRecieved);
-            //Handler = new(Proxy.Graph);
             string Domain = "modelling";
             string Scheme = "resources";
             CefSettings Settings = new();
@@ -61,25 +57,13 @@ namespace University_Diploma
             Browser.JavascriptObjectRepository.Register("Proxy", Proxy, options: BindingOptions.DefaultBinder);
             Browser.Load($"{Scheme}://{Domain}/");
             Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
-            /*Thread.Sleep(1000);
-
-            string[] Files = Directory.GetFiles(SessionPath*//*.Substring(0, SessionPath.Length - 1)*//*, GraphFileType, SearchOption.AllDirectories);
-            if (Files.Length != 0)
-            {
-                TabControl.TabPages.Remove(Tab);
-                foreach (string File in Files)
-                {
-                    LoadGraph(File);
-                }
-                //Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
-            }*/
         }
 
         private void PageLoaded(object sender, FrameLoadEndEventArgs e)
         {
             Browser.ShowDevTools();
 
-            string[] Files = Directory.GetFiles(SessionPath/*.Substring(0, SessionPath.Length - 1)*/, GraphFileType, SearchOption.AllDirectories);
+            string[] Files = Directory.GetFiles(SessionPath, GraphFileType, SearchOption.AllDirectories);
             if (Files.Length != 0)
             {
                 /*if (TabControl.InvokeRequired)
@@ -92,16 +76,11 @@ namespace University_Diploma
                 {
                     LoadGraph(File);
                 }
-                //Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
             }
         }
 
         private void Loaded(object sender, EventArgs e)
         {
-            //_default = Default;
-            //TabControl.TabPages.Remove(New);
-            //MessageBox.Show(Default.ToString());
-
             Controls.Add(AddPageButton);
             AddPageButton.Top = TabControl.Top;
             AddPageButton.Left = TabControl.Right - AddPageButton.Width - 5;
@@ -124,45 +103,6 @@ namespace University_Diploma
                 ExportGraph(Pair.Value, SessionPath + Pair.Key.Text.Trim() + GraphFileType[1..]);
             }
         }
-
-        /*private void ChangeFrontEndProbability(GraphEdge Edge)
-        {
-            JObject JEdge = new();
-            JEdge.Add("source", Edge.Source.ID);
-            JEdge.Add("target", Edge.Target.ID);
-            JEdge.Add("label", Edge.Probability.ToString());
-            string Script = $"RefreshEdge({JEdge});";
-            Browser.ExecuteScriptAsync(Script);
-        }*/
-        /*private void ChangeFrontEndGraph(UndirectedGraph<Node, GraphEdge> Graph)
-        {
-            //var Graph = Handler.Graph;
-            JObject JSONObject = new();
-            var Edges = Graph.Edges;
-            var Nodes = Graph.Vertices;
-            JArray JEdges = new();
-            JArray JNodes = new();
-            foreach (Node Node in Nodes)
-            {
-                JObject JNode = new();
-                JNode.Add("id", Node.ID);
-                JNode.Add("label", Node.Label);
-                JNodes.Add(JNode);
-            }
-            foreach (GraphEdge Edge in Edges)
-            {
-                JObject JEdge = new();
-                JEdge.Add("source", Edge.Source.ID);
-                JEdge.Add("target", Edge.Target.ID);
-                JEdge.Add("label", Edge.Probability.ToString());
-                JEdges.Add(JEdge);
-            }
-            JSONObject.Add("nodes", JNodes);
-            JSONObject.Add("edges", JEdges);
-            string Script = $"RefreshGraph({JSONObject});";
-            Browser.ExecuteScriptAsync(Script);
-        }*/
-
         private void OnGraphRecieved(UndirectedGraph<Node, GraphEdge> Graph)
         {
             if (TabControl.InvokeRequired)
@@ -291,9 +231,6 @@ namespace University_Diploma
                 Node target = Graph.Vertices.Where(Node => Node.ID.Equals(Target)).First();
                 Graph.AddEdge(new GraphEdge(source, target, double.Parse(Edge.Element(NS + "data").Value.Replace('.', ','))));
             }
-            //TabControl.SelectedTab
-            //TabPage Page = TabControl.TabPages[0];
-            //ChangeFrontEndGraph();
             TabPage NewTab = new(GenerateTitle());
             if (Browser.InvokeRequired)
             {
@@ -305,12 +242,6 @@ namespace University_Diploma
                     Browser.ChangeFrontEndGraph(Graph, true);
                 }));
             }
-            /*if (Browser.InvokeRequired)
-            {
-                Browser.Invoke(new MethodInvoker(delegate {
-                }));
-            }*/
-            //ChromiumWebBrowser browser = new();
         }
 
         private void ExportGraph(UndirectedGraph <Node, GraphEdge> Graph, string FileName)
@@ -334,8 +265,6 @@ namespace University_Diploma
             if (Dialog.ShowDialog() == DialogResult.Cancel)
                 return;
             string FileName = Dialog.FileName; // get name of file
-            //var Graph = Proxy.Graph;
-            //Graph.Clear();
             LoadGraph(FileName);
         }
 
@@ -401,7 +330,6 @@ namespace University_Diploma
     {
         public static void ChangeFrontEndGraph(this ChromiumWebBrowser Browser, UndirectedGraph<Node, GraphEdge> Graph, bool CalcLayout)
         {
-            //var Graph = Handler.Graph;
             JObject JSONObject = new();
             var Edges = Graph.Edges;
             var Nodes = Graph.Vertices;

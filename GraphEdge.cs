@@ -1,6 +1,6 @@
-﻿using QuikGraph;
-using System;
+﻿using System;
 using System.Xml.Serialization;
+using QuikGraph;
 
 namespace University_Diploma
 {

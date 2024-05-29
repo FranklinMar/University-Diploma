@@ -1,8 +1,8 @@
-﻿using QuikGraph;
-using System.Collections.Generic;
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using QuikGraph;
 
 namespace University_Diploma
 {
@@ -101,23 +101,6 @@ namespace University_Diploma
                     }
                 }
             }
-            /*foreach (var Cut in Cuts)
-            {
-                MinCuts.AddUnique(Cut);
-            }*/
-            /*foreach (List<GraphEdge> Cut in Cuts)
-            {
-                if (Cuts.Any(OtherCut.All()))
-            }*/
-            /*foreach (List<GraphEdge> Cut in Cuts)
-            {
-                //if (Cuts.Any(OtherCut => Cut.All(edge => OtherCut.Any(otherEdge => EqualEdges(edge, otherEdge)))))
-                if (!Cuts.Any(OtherCut => (IsSubset(Cut, OtherCut) && Cut != OtherCut) || 
-                !(MinCuts.Contains(Cut) && MinCuts.Contains(OtherCut))))
-                {
-                    MinCuts.Add(Cut);
-                }
-            }*/
             return MinCuts;
         }
     }

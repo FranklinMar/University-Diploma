@@ -196,8 +196,6 @@ async function SendGraph() {
         let Edges = Elements.edges;
         if (Edges !== null && Edges !== undefined) {
             for (let Edge of Elements.edges) {
-                //var Temp = Edge.data;
-                //Temp.position = Edge.position
                 Result.edges.push(Edge.data);
             }
         }
@@ -217,7 +215,6 @@ async function RefreshEdge(NewEdge) {
 }
 
 function RefreshGraph(JSON, Bool) {
-    //Cy.elements().remove();
     console.log(JSON);
     Cy.nodes().remove();
     for (let Node of JSON.nodes) {
@@ -234,7 +231,6 @@ function RefreshGraph(JSON, Bool) {
         Cy.add(edge);
     }
     if (Bool) {
-        //Cy.json({ elements: JSON });
         let Options = {
             name: 'circle',
 
@@ -324,8 +320,6 @@ document.addEventListener('DOMContentLoaded', function () {
             minNodeSpacing: 100
         }
     });
-    //Cy.userPanningEnabled(false);
-    //Cy.userZoomingEnabled(true);
     Cy.pan(renderedPosition = { x: 0, y: 0 });
     /*Cy.zoom({
         level: 1,
@@ -521,24 +515,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setInputFilter(Input, (value) => (value <= 1 && value >= 0), "Value must be in range from 0 to 1");
         setInputFilter(Input, (value) => (value !== "" && value !== null && value !== undefined && !value.match(/^-?[0-9]*[.][0-9]+$/)), "Value must be double number");
         //    return value !== null & value !== undefined && value <= 1 && value >= 0 && value !== "";
-        //});
-        //let Edges = Cy.edges; //'node[souce = "Car"]';
-        //const UniqueElements = new Set();
-        //let filteredNodes = cy.nodes(query);
-        /*foreach(Edge => {
-            if (UniqueElements.has(Edge)) {
-                Proxy.DisplayError(`Edge with Source:(${Edge.source}) and Target:(${Edge.target}) already exists`);
-                //Duplicates.push(Edge);
-                Cy.remove(`#${Edge.id}`)
-            } else {
-                UniqueElements.add(Edge);
-            }
-        });*/
     });
     Cy.on('free', 'node', function (event) {
-        //console.log(event.target);
-        //let Data = event.target.data();
-        //let Node = { id: Data.id, label:}
         let Node = event.target.data();
         Node.position = { x: event.target.position('x'), y: event.target.position('y') };
         //console.log(Node)

@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Windows.Forms;
-using MathNet.Symbolics;
-using Expression = MathNet.Symbolics.SymbolicExpression;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using ScottPlot;
 using ScottPlot.WinForms;
 using ScottPlot.Plottables;
-using System.Text.RegularExpressions;
-using System.Drawing;
+using MathNet.Symbolics;
+using Expression = MathNet.Symbolics.SymbolicExpression;
 
 namespace University_Diploma
 {
@@ -167,11 +167,6 @@ namespace University_Diploma
             double LowerLimit = EzariProshanLowerLimit(out string Lower);
             Upper = Regex.Replace(Upper, PEdgeRegex, "x");
             Lower = Regex.Replace(Lower, PEdgeRegex, "x");
-            //MessageBox.Show(Upper);
-            //MessageBox.Show(Lower);
-            //var Funcs = new[] { Lower, Upper };
-            //var Legends = new[] { "Lower Ezari-Proshan", "Upper Ezari-Proshan" };
-            //ConstructPlot(Funcs, Legends);
             Func<double, double> Function = new(x => {
                 if (x <= 0)
                 {
@@ -239,43 +234,6 @@ namespace University_Diploma
                 }
             }
         }
-
-        /*private void ConstructPlot(string[] Funcs, string[] Legends = null)
-        {
-            Func<double, double> Function;
-            int i = 0;
-            if (Legends != null)
-            {
-                if (Legends.Length != Funcs.Length)
-                {
-                    throw new ArgumentException("Arrays of Functions and Legends must be equal in size", nameof(Legends));
-                }
-            }
-            for (; i < Funcs.Length; i++)
-            {
-                var Func = Funcs[i];
-                //MessageBox.Show(i.ToString());
-                //MessageBox.Show(Funcs[i]);
-                Function = new(x => {
-                    if (x <= 0)
-                    {
-                        return 0;
-                    }
-                    if (x >= 1)
-                    {
-                        return 1;
-                    }
-                    string Funct = Func.Replace("x", $"{x}").Replace(',', '.');
-                    return Convert.ToDouble(new DataTable().Compute(Funct, null));
-                });
-                FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
-                if (Legends != null)
-                {
-                    FP.LegendText = Legends[i];
-                }
-            }
-            i = 0;
-        }*/
 
         private double PreciseCalculate(out string expression)
         {
