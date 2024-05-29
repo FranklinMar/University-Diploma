@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using QuikGraph.Algorithms.Search;
-using QuikGraph.Algorithms.Observers;
-using System.Windows.Forms;
 using System.Collections;
 
 namespace University_Diploma

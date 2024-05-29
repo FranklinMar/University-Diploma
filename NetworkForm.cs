@@ -14,6 +14,8 @@ using QuikGraph.Serialization;
 using System.Xml;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Threading;
 
 namespace University_Diploma
 {
@@ -22,6 +24,8 @@ namespace University_Diploma
         private readonly ProxyController Proxy;
         //private readonly GraphHandler Handler;
         private readonly Dictionary<TabPage, UndirectedGraph<Node, GraphEdge>> Pages = new();
+        private readonly string SessionPath = "./Session/";
+        private readonly string GraphFileType = "*.graphml";
         private Rectangle CloseX = Rectangle.Empty;
         //private TabPage _default;
 
@@ -38,7 +42,7 @@ namespace University_Diploma
         {
             //AllocateConsole();
             InitializeComponent();
-            Proxy = new(OnGraphRecieved);
+            Proxy = new(OnGraphRecieved, OnNodeRecieved);
             //Handler = new(Proxy.Graph);
             string Domain = "modelling";
             string Scheme = "resources";
@@ -56,6 +60,40 @@ namespace University_Diploma
             Browser.JavascriptObjectRepository.Settings.LegacyBindingEnabled = true;
             Browser.JavascriptObjectRepository.Register("Proxy", Proxy, options: BindingOptions.DefaultBinder);
             Browser.Load($"{Scheme}://{Domain}/");
+            Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
+            /*Thread.Sleep(1000);
+
+            string[] Files = Directory.GetFiles(SessionPath*//*.Substring(0, SessionPath.Length - 1)*//*, GraphFileType, SearchOption.AllDirectories);
+            if (Files.Length != 0)
+            {
+                TabControl.TabPages.Remove(Tab);
+                foreach (string File in Files)
+                {
+                    LoadGraph(File);
+                }
+                //Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
+            }*/
+        }
+
+        private void PageLoaded(object sender, FrameLoadEndEventArgs e)
+        {
+            Browser.ShowDevTools();
+
+            string[] Files = Directory.GetFiles(SessionPath/*.Substring(0, SessionPath.Length - 1)*/, GraphFileType, SearchOption.AllDirectories);
+            if (Files.Length != 0)
+            {
+                /*if (TabControl.InvokeRequired)
+                {
+                    TabControl.Invoke(new MethodInvoker(delegate {
+                        TabControl.TabPages.Remove(Tab);
+                    }));
+                }*/
+                foreach (string File in Files)
+                {
+                    LoadGraph(File);
+                }
+                //Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
+            }
         }
 
         private void Loaded(object sender, EventArgs e)
@@ -68,12 +106,23 @@ namespace University_Diploma
             AddPageButton.Top = TabControl.Top;
             AddPageButton.Left = TabControl.Right - AddPageButton.Width - 5;
             AddPageButton.BringToFront();
-            Pages.Add(Tab, new UndirectedGraph<Node, GraphEdge>());
         }
 
-        private void PageLoaded(object sender, LoadingStateChangedEventArgs e)
+        private void CloseForm(object sender, FormClosedEventArgs e)
         {
-            Browser.ShowDevTools();
+            var DirInfo = new DirectoryInfo(SessionPath/*.Substring(0, SessionPath.Length - 1)*/);
+            foreach (var File in DirInfo.EnumerateFiles())
+            {
+                File.Delete();
+            }
+            foreach (var Pair in Pages)
+            {
+                if (Pair.Value.VertexCount == 0 && Pair.Value.EdgeCount == 0)
+                {
+                    continue;
+                }
+                ExportGraph(Pair.Value, SessionPath + Pair.Key.Text.Trim() + GraphFileType[1..]);
+            }
         }
 
         /*private void ChangeFrontEndProbability(GraphEdge Edge)
@@ -181,23 +230,43 @@ namespace University_Diploma
             }*/
         }
 
-        private void CalcClick(object sender, EventArgs e)
+        private string GenerateTitle()
         {
-            var Graph = Pages[TabControl.SelectedTab];
-            Calculations Form = new(new(Graph));
-            Form.Show();
+            int Index = 0;
+            string Title = "";
+            bool Loop = true;
+            while (Loop)
+            {
+                ++Index;
+                Loop = false;
+                Title = $"Graph {Index}   ";
+                foreach (TabPage Page in TabControl.TabPages)
+                {
+                    //MessageBox.Show($"PAGE: ({Page.Text.Trim()}) TITLE: ({Title.Trim()})");
+                    if (Page.Text.Trim().Equals(Title.Trim()))
+                    {
+                        Loop = true;
+                    }
+                }
+            }
+            return Title;
         }
 
-        private void ImportClick(object sender, EventArgs e)
+        private void OnNodeRecieved(Node Node)
         {
-            OpenFileDialog Dialog = new();
-            Dialog.Filter = "GraphML files | *.graphml"; // file types, that will be allowed to upload
-            Dialog.Multiselect = false; // allow/deny user to upload more than one file at a time
-            if (Dialog.ShowDialog() == DialogResult.Cancel)
-                return;
-            string FileName = Dialog.FileName; // get name of file
-            //var Graph = Proxy.Graph;
-            //Graph.Clear();
+            if (TabControl.InvokeRequired)
+            {
+                TabControl.Invoke(new MethodInvoker(delegate {
+                    var Graph = Pages[TabControl.SelectedTab];
+                    Node GraphNode = Graph.Vertices.Where(node => node.ID.Equals(Node.ID)).First();
+                    GraphNode.Label = Node.Label;
+                    GraphNode.Position = Node.Position;
+                }));
+            }
+        }
+
+        private void LoadGraph(string FileName)
+        {
             UndirectedGraph<Node, GraphEdge> Graph = new();
             var XML = XDocument.Load(FileName);
             XNamespace NS = "http://graphml.graphdrawing.org/xmlns";
@@ -226,20 +295,48 @@ namespace University_Diploma
             //TabPage Page = TabControl.TabPages[0];
             //ChangeFrontEndGraph();
             TabPage NewTab = new(GenerateTitle());
-            NewTab.Controls.Add(Browser);
-            Pages.Add(NewTab, Graph);
-            TabControl.TabPages.Add(NewTab);
-            TabControl.SelectedTab = NewTab;
-            Browser.ChangeFrontEndGraph(Graph);
+            if (Browser.InvokeRequired)
+            {
+                Browser.Invoke(new MethodInvoker(delegate {
+                    NewTab.Controls.Add(Browser);
+                    Pages.Add(NewTab, Graph);
+                    TabControl.TabPages.Add(NewTab);
+                    TabControl.SelectedTab = NewTab;
+                    Browser.ChangeFrontEndGraph(Graph, true);
+                }));
+            }
+            /*if (Browser.InvokeRequired)
+            {
+                Browser.Invoke(new MethodInvoker(delegate {
+                }));
+            }*/
             //ChromiumWebBrowser browser = new();
         }
-        
-        private void SelectedChanged(object sender, EventArgs e)
+
+        private void ExportGraph(UndirectedGraph <Node, GraphEdge> Graph, string FileName)
         {
-            Browser.ClearFrontEnd();
-            TabControl.SelectedTab.Controls.Add(Browser);
-            Browser.ChangeFrontEndGraph(Pages[TabControl.SelectedTab]);
-            CalcButton.Enabled = Pages[TabControl.SelectedTab].Edges.Any();
+            using XmlWriter Writer = XmlWriter.Create(FileName, new XmlWriterSettings { Indent = true, WriteEndDocumentOnClose = false });
+            Graph.SerializeToGraphML<Node, GraphEdge, UndirectedGraph<Node, GraphEdge>>(Writer);
+        }
+
+        private void CalcClick(object sender, EventArgs e)
+        {
+            var Graph = Pages[TabControl.SelectedTab];
+            Calculations Form = new(new(Graph));
+            Form.Show();
+        }
+
+        private void ImportClick(object sender, EventArgs e)
+        {
+            OpenFileDialog Dialog = new();
+            Dialog.Filter = "GraphML files | *.graphml"; // file types, that will be allowed to upload
+            Dialog.Multiselect = false; // allow/deny user to upload more than one file at a time
+            if (Dialog.ShowDialog() == DialogResult.Cancel)
+                return;
+            string FileName = Dialog.FileName; // get name of file
+            //var Graph = Proxy.Graph;
+            //Graph.Clear();
+            LoadGraph(FileName);
         }
 
         private void ExportClick(object sender, EventArgs e)
@@ -249,9 +346,16 @@ namespace University_Diploma
             if (Dialog.ShowDialog() == DialogResult.Cancel)
                 return;
             string Filename = Dialog.FileName; // get selected file
-            var Graph = Proxy.Graph; // save text into the file
-            using XmlWriter Writer = XmlWriter.Create(Filename, new XmlWriterSettings { Indent = true, WriteEndDocumentOnClose = false });
-            Graph.SerializeToGraphML<Node, GraphEdge, UndirectedGraph<Node, GraphEdge>>(Writer);
+            var Graph = Pages[TabControl.SelectedTab];
+            ExportGraph(Graph, Filename);
+        }
+
+        private void SelectedChanged(object sender, EventArgs e)
+        {
+            Browser.ClearFrontEnd();
+            TabControl.SelectedTab.Controls.Add(Browser);
+            Browser.ChangeFrontEndGraph(Pages[TabControl.SelectedTab], false);
+            CalcButton.Enabled = Pages[TabControl.SelectedTab].Edges.Any();
         }
 
         private void TabDraw(object sender, DrawItemEventArgs e)
@@ -291,33 +395,11 @@ namespace University_Diploma
             TabControl.TabPages.Add(NewTabPage);
             TabControl.SelectedTab = NewTabPage;
         }
-
-        private string GenerateTitle()
-        {
-            int Index = 0;
-            string Title = "";
-            bool Loop = true;
-            while (Loop)
-            {
-                ++Index;
-                Loop = false;
-                Title = $"Graph {Index}   ";
-                foreach (TabPage Page in TabControl.TabPages)
-                {
-                    //MessageBox.Show($"PAGE: ({Page.Text.Trim()}) TITLE: ({Title.Trim()})");
-                    if (Page.Text.Trim().Equals(Title.Trim()))
-                    {
-                        Loop = true;
-                    }
-                }
-            }
-            return Title;
-        }
     }
 
     public static class BrowserExtensions
     {
-        public static void ChangeFrontEndGraph(this ChromiumWebBrowser Browser, UndirectedGraph<Node, GraphEdge> Graph)
+        public static void ChangeFrontEndGraph(this ChromiumWebBrowser Browser, UndirectedGraph<Node, GraphEdge> Graph, bool CalcLayout)
         {
             //var Graph = Handler.Graph;
             JObject JSONObject = new();
@@ -330,6 +412,13 @@ namespace University_Diploma
                 JObject JNode = new();
                 JNode.Add("id", Node.ID);
                 JNode.Add("label", Node.Label);
+                if (Node.Position != null)
+                {
+                    JObject Position = new();
+                    Position.Add("x", Node.Position.X);
+                    Position.Add("y", Node.Position.Y);
+                    JNode.Add("position", Position);
+                }
                 JNodes.Add(JNode);
             }
             foreach (GraphEdge Edge in Edges)
@@ -342,7 +431,7 @@ namespace University_Diploma
             }
             JSONObject.Add("nodes", JNodes);
             JSONObject.Add("edges", JEdges);
-            string Script = $"ChangeGraphBool = false; RefreshGraph({JSONObject}); ChangeGraphBool = true;";
+            string Script = $"ChangeGraphBool = false; RefreshGraph({JSONObject}, {CalcLayout.ToString().ToLower()}); ChangeGraphBool = true;";
             lock (Browser)
             {
                 Browser.ExecuteScriptAsync(Script);

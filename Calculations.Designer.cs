@@ -274,7 +274,7 @@ namespace University_Diploma
             this.ProbPanel.ColumnCount = 3;
             this.ProbPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.ProbPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.ProbPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 157F));
+            this.ProbPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 161F));
             this.ProbPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.ProbPanel.Location = new System.Drawing.Point(525, 330);
             this.ProbPanel.Name = "ProbPanel";
@@ -321,12 +321,12 @@ namespace University_Diploma
             this.TextPrecise.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(64)))));
             this.TextPrecise.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.TextPrecise.ForeColor = System.Drawing.Color.White;
-            this.TextPrecise.Location = new System.Drawing.Point(13, 126);
+            this.TextPrecise.Location = new System.Drawing.Point(13, 44);
             this.TextPrecise.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TextPrecise.Name = "TextPrecise";
             this.TextPrecise.ReadOnly = true;
             this.TextPrecise.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-            this.TextPrecise.Size = new System.Drawing.Size(497, 169);
+            this.TextPrecise.Size = new System.Drawing.Size(497, 251);
             this.TextPrecise.TabIndex = 22;
             this.TextPrecise.Text = "";
             // 
@@ -334,12 +334,12 @@ namespace University_Diploma
             // 
             this.PreciseLabel.AutoSize = true;
             this.PreciseLabel.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.PreciseLabel.Location = new System.Drawing.Point(14, 100);
+            this.PreciseLabel.Location = new System.Drawing.Point(14, 18);
             this.PreciseLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.PreciseLabel.Name = "PreciseLabel";
-            this.PreciseLabel.Size = new System.Drawing.Size(377, 23);
+            this.PreciseLabel.Size = new System.Drawing.Size(431, 23);
             this.PreciseLabel.TabIndex = 23;
-            this.PreciseLabel.Text = "Upper Limit | h̅ₑₚ = 1 - ∏₁ ≤ ⱼ ≤ ₘ (1 - ∏pₒ)";
+            this.PreciseLabel.Text = "Precise Structural Integrity Function M(Ф(X))";
             // 
             // Calculations
             // 

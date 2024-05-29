@@ -52,15 +52,12 @@ namespace University_Diploma
             // Browser
             // 
             this.Browser.ActivateBrowserOnCreation = false;
-            this.Browser.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.Browser.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(14)))));
             this.Browser.Location = new System.Drawing.Point(0, 0);
             this.Browser.Name = "Browser";
             this.Browser.Size = new System.Drawing.Size(749, 625);
             this.Browser.TabIndex = 0;
-            this.Browser.LoadingStateChanged += new System.EventHandler<CefSharp.LoadingStateChangedEventArgs>(this.PageLoaded);
+            this.Browser.FrameLoadEnd += new System.EventHandler<CefSharp.FrameLoadEndEventArgs>(this.PageLoaded);
             // 
             // SidePanel
             // 
@@ -215,6 +212,7 @@ namespace University_Diploma
             this.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.Name = "NetworkForm";
             this.Text = "Network Modeller";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CloseForm);
             this.Load += new System.EventHandler(this.Loaded);
             this.SidePanel.ResumeLayout(false);
             this.LabelPanel.ResumeLayout(false);

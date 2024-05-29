@@ -89,7 +89,6 @@ namespace University_Diploma
         }
 
         private readonly Dictionary<string, bool> Modes = new(){{ "Ezari-Proshan", false }, { "Precise", false }};
-        //private string LastMode = "";
         private Calculation Function;
         private readonly string PEdgeRegex = @"P\[.*?\]";
         private readonly string EdgeRegex = @"\[.*?\]";
@@ -106,7 +105,7 @@ namespace University_Diploma
             Plot Plot = FormPlot.Plot;
             Plot.XLabel("Edges Success Probability");
             Plot.YLabel("Network connectivity");
-            Plot.Title("Network Connectivity assesment");
+            Plot.Title("Network Connectivity Assesment");
             Plot.ShowLegend();
             Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#181818");
             Plot.DataBackground.Color = ScottPlot.Color.FromHex("#1f1f1f");
@@ -125,8 +124,7 @@ namespace University_Diploma
             PrintMinPaths();
             PrintMinCuts();
             Function();
-            Modes[ModeBox.SelectedItem.ToString()] = true;
-            //LastMode = Mode;
+            Modes[$"{ModeBox.SelectedItem}"] = true;
         }
 
         private void ModeChanged(object sender, EventArgs e)
@@ -137,11 +135,11 @@ namespace University_Diploma
                 LowerResult.Show();
                 CalcLabel2.Show();
                 UpperResult.Show();
-                PreciseResult.Hide();
                 TextLower.Show();
                 LowerLabel.Show();
                 TextUpper.Show();
                 UpperLabel.Show();
+                PreciseResult.Hide();
                 TextPrecise.Hide();
                 PreciseLabel.Hide();
                 Function = EzariProshanData;
@@ -151,11 +149,11 @@ namespace University_Diploma
                 LowerResult.Hide();
                 CalcLabel2.Hide();
                 UpperResult.Hide();
-                PreciseResult.Show();
                 TextLower.Hide();
                 LowerLabel.Hide();
                 TextUpper.Hide();
                 UpperLabel.Hide();
+                PreciseResult.Show();
                 TextPrecise.Show();
                 PreciseLabel.Show();
                 Function = PreciseData;
@@ -164,19 +162,47 @@ namespace University_Diploma
 
         private void EzariProshanData()
         {
-            //if (LastMode.Equals(ModeBox.SelectedItem))
             CheckPlot();
             double UpperLimit = EzariProshanUpperLimit(out string Upper);
             double LowerLimit = EzariProshanLowerLimit(out string Lower);
             Upper = Regex.Replace(Upper, PEdgeRegex, "x");
             Lower = Regex.Replace(Lower, PEdgeRegex, "x");
-            var Funcs = new[] { Lower, Upper };
-            var Legends = new[] { "Lower Ezari-Proshan", "Upper Ezari-Proshan" };
-            ConstructPlot(Funcs, Legends);
-            LowerResult.Text = LowerLimit.ToString();
-            UpperResult.Text = UpperLimit.ToString();
+            //MessageBox.Show(Upper);
+            //MessageBox.Show(Lower);
+            //var Funcs = new[] { Lower, Upper };
+            //var Legends = new[] { "Lower Ezari-Proshan", "Upper Ezari-Proshan" };
+            //ConstructPlot(Funcs, Legends);
+            Func<double, double> Function = new(x => {
+                if (x <= 0)
+                {
+                    return 0;
+                }
+                if (x >= 1)
+                {
+                    return 1;
+                }
+                string Funct = Upper.Replace("x", $"{x}").Replace(',', '.');
+                return Convert.ToDouble(new DataTable().Compute(Funct, null));
+            });
+            FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
+            FP.LegendText = "Upper Ezari-Proshan";
+            Function = new(x => {
+                if (x <= 0)
+                {
+                    return 0;
+                }
+                if (x >= 1)
+                {
+                    return 1;
+                }
+                string Funct = Lower.Replace("x", $"{x}").Replace(',', '.');
+                return Convert.ToDouble(new DataTable().Compute(Funct, null));
+            });
+            FP = FormPlot.Plot.Add.Function(Function);
+            FP.LegendText = "Lower Ezari-Proshan";
+            LowerResult.Text = $"{LowerLimit}".Replace(',', '.');
+            UpperResult.Text = $"{UpperLimit}".Replace(',', '.');
             FormPlot.Refresh();
-            //FormPlot.Plot.Legend.ManualItems.Add();
         }
 
         private void PreciseData()
@@ -193,16 +219,18 @@ namespace University_Diploma
                 {
                     return 1;
                 }
-                string Funct = Func.Replace("x", x.ToString()).Replace(',', '.');
+                string Funct = Func.Replace("x", $"{x}").Replace(',', '.');
                 return Convert.ToDouble(new DataTable().Compute(Funct, null));
             });
             FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
             FP.LegendText = "Precise Function";
+            PreciseResult.Text = $"{Result}".Replace(',', '.');
             FormPlot.Refresh();
         }
+
         private void CheckPlot()
         {
-            if (Modes[ModeBox.SelectedItem.ToString()])
+            if (Modes[$"{ModeBox.SelectedItem}"])
             {
                 FormPlot.Plot.Clear();
                 foreach (var Key in Modes)
@@ -212,7 +240,7 @@ namespace University_Diploma
             }
         }
 
-        private void ConstructPlot(string[] Funcs, string[] Legends = null)
+        /*private void ConstructPlot(string[] Funcs, string[] Legends = null)
         {
             Func<double, double> Function;
             int i = 0;
@@ -225,7 +253,9 @@ namespace University_Diploma
             }
             for (; i < Funcs.Length; i++)
             {
+                var Func = Funcs[i];
                 //MessageBox.Show(i.ToString());
+                //MessageBox.Show(Funcs[i]);
                 Function = new(x => {
                     if (x <= 0)
                     {
@@ -235,19 +265,9 @@ namespace University_Diploma
                     {
                         return 1;
                     }
-                    string Func = Funcs[i].Replace("x", x.ToString()).Replace(',', '.');
-                    //MessageBox.Show(Func);
-                    //MessageBox.Show(new DataTable().Compute(Func, null).GetType().ToString());
-                    return Convert.ToDouble(new DataTable().Compute(Func, null));
+                    string Funct = Func.Replace("x", $"{x}").Replace(',', '.');
+                    return Convert.ToDouble(new DataTable().Compute(Funct, null));
                 });
-                /*Function = (x) =>
-                {
-                    if (x <= 0)
-                        return 0;
-                    if (x >= 1)
-                        return 1;
-                    return Expression.Parse(Item).Compile("x")(x);
-                };*/
                 FunctionPlot FP = FormPlot.Plot.Add.Function(Function);
                 if (Legends != null)
                 {
@@ -255,7 +275,7 @@ namespace University_Diploma
                 }
             }
             i = 0;
-        }
+        }*/
 
         private double PreciseCalculate(out string expression)
         {
@@ -301,12 +321,11 @@ namespace University_Diploma
                 Product = 1;
                 for (int i = 0; i < BinaryEdge.Length; i++)
                 {
-                    //var Edge = Edges[i].Probability;
                     Product *= (BinaryEdge[i] == '1' ? Variables[Edges[i]] : (1 - Variables[Edges[i]]));
                 }
                 Result += Product;
             }
-            expression = Result.ToString();
+            expression = $"{Result}";
             PrintExpression(TextPrecise, expression);
             Dictionary<string, FloatingPoint> Values = new();
             foreach (KeyValuePair<GraphEdge, Expression> Pair in Variables)
@@ -321,37 +340,28 @@ namespace University_Diploma
             TextBox.Text = Expression.Replace("*", " × ").Replace("-", " — ")
                 .Replace("[", "").Replace("]", "");
             var Match = Regex.Match(Expression, EdgeRegex);
+            int Index = -1;
             while (Match.Success)
             {
-                int Index = TextBox.Text.IndexOf(Match.Value.Replace("[", "").Replace("]", ""));
-                TextBox.Select(Index, Match.Length - 2);
-                TextBox.SelectionFont = new(TextBox.Font.Name, 8);
-                TextBox.SelectionCharOffset = -5;
+                do
+                {
+                    ++Index;
+                    Index = TextBox.Text.IndexOf(Match.Value.Replace("[", "").Replace("]", ""), Index);
+                    if (Index != -1)
+                    {
+                        TextBox.Select(Index, Match.Length - 2);
+                        TextBox.SelectionFont = new(TextBox.Font.Name, 8);
+                        TextBox.SelectionCharOffset = -5;
+                    }
+                } while (Index != -1);
                 Match = Match.NextMatch();
             }
         }
-
-        /*private static string Superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻";
-        private static char GetSuperscript(int number)
-        {
-            if (number < 0)
-                return Superscripts[^1];
-            return Superscripts.ElementAt(number);
-        }
-        private static string Subscripts = "₀₁₂₃₄₅₆₇₈₉₋";
-        private static char GetSubscript(int number)
-        {
-            if (number < 0)
-                return Subscripts[^1];
-            return Subscripts.ElementAt(number);
-        }*/
-
         public void PrintMinPaths()
         {
             GraphHandler.AllMinPaths(Source, Target);
             TextPaths.Text = "";
             StringBuilder Builder = new();
-            //GraphEdge Edge;
             Node Node;
             foreach(List<Node> Path in GraphHandler.NodePaths)
             {
@@ -411,8 +421,7 @@ namespace University_Diploma
                 Result *= (1 - Product);
             }
             Result = 1 - Result;
-            //Result.Compile();
-            expression = Result.ToString();
+            expression = $"{Result}";
             PrintExpression(TextUpper, expression);
             Dictionary<string, FloatingPoint> Values = new();
             foreach (KeyValuePair<GraphEdge, Expression> Pair in Variables)
@@ -442,7 +451,7 @@ namespace University_Diploma
                 }
                 Result *= (1 - Product);
             }
-            expression = Result.ToString();
+            expression = $"{Result}";
             PrintExpression(TextLower, expression);
             Dictionary<string, FloatingPoint> Values = new();
             foreach(KeyValuePair<GraphEdge, Expression> Pair in Variables)
@@ -460,7 +469,6 @@ namespace University_Diploma
             PlotPanel.Controls.Add(FormPlot);
             SetUpPlot();
             var Edges = GraphHandler.Graph.Edges;
-            //List<FlowLayoutPanel> Panels = new();
             foreach (GraphEdge Edge in Edges)
             {
                 FlowLayoutPanel Panel = new();
@@ -483,7 +491,6 @@ namespace University_Diploma
                 Prob.TextAlign = ContentAlignment.TopCenter;
                 Prob.ForeColor = System.Drawing.Color.White;
                 Prob.Font = new Font("Roboto", 13);
-                //Prob.Text = string.Format("{0:N2}", Edge.Probability).Replace(',', '.');
                 SmallerPanel.Controls.Add(Prob);
                 EdgeBar Bar = new(Edge, Prob);
                 Bar.AutoSize = true;
@@ -493,31 +500,17 @@ namespace University_Diploma
                 {
                     EdgeBar This = sender as EdgeBar;
                     This.ChangeValue();
-                    //ChangeFrontEndProbability(This.Edge);
-                    //Browser.ChangeFrontEndProbability(This.Edge);
                 });
                 Bar.Scroll += Event;
                 Bar.ValueChanged += Event;
                 ProbPanel.Controls.Add(Panel);
-                //Panels.Add(Panel);
             }
             ModeBox.SelectedIndex = 0;
-            /*if (ProbPanel.InvokeRequired)
-            {
-                ProbPanel.Invoke(new MethodInvoker(delegate {
-                    ProbPanel.Controls.Clear();
-                    foreach (var Panel in Panels)
-                    {
-                        ProbPanel.Controls.Add(Panel);
-                    }
-                }));
-            }*/
         }
 
         private void OnGraphChanged()
         {
             string[] Nodes = GraphHandler.Graph.Vertices.Select(Node => Node.Label).ToArray();
-            //if (SourceBox.Items.Count != 0)
             SourceBox.Items.Clear();
             SourceBox.Items.AddRange(Nodes);
             if (SourceBox.Items.Count != 0)

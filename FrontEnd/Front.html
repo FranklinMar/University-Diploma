@@ -181,19 +181,24 @@ function CreateInput(ID, Pos, Value, Remove) {
 async function SendGraph() {
     if (ChangeGraphBool) {
         let Result = {};
-        Result['nodes'] = [];
-        Result['edges'] = [];
+        Result.nodes = [];
+        Result.edges = [];
         let Elements = Cy.json().elements;
+        //console.log(Elements);
         let Nodes = Elements.nodes;
         if (Nodes !== null && Nodes !== undefined) {
             for (let Node of Elements.nodes) {
-                Result['nodes'].push(Node.data);
+                var Temp = Node.data;
+                Temp.position = Node.position
+                Result.nodes.push(Temp);
             }
         }
         let Edges = Elements.edges;
         if (Edges !== null && Edges !== undefined) {
             for (let Edge of Elements.edges) {
-                Result['edges'].push(Edge.data);
+                //var Temp = Edge.data;
+                //Temp.position = Edge.position
+                Result.edges.push(Edge.data);
             }
         }
         console.log(Result);
@@ -211,11 +216,15 @@ async function RefreshEdge(NewEdge) {
     }
 }
 
-function RefreshGraph(JSON) {
+function RefreshGraph(JSON, Bool) {
     //Cy.elements().remove();
+    console.log(JSON);
     Cy.nodes().remove();
     for (let Node of JSON.nodes) {
-        let node = { group: 'nodes', data: Node };
+        let node = {
+            group: 'nodes', data: { id: Node.id, label: Node.label },
+            position: Node.position,
+        };
         Cy.add(node);
     }
     for (let Edge of JSON.edges) {
@@ -224,31 +233,35 @@ function RefreshGraph(JSON) {
         //console.log(edge);
         Cy.add(edge);
     }
-    //Cy.json({ elements: JSON });
-    let Options = {
-        name: 'circle',
+    if (Bool) {
+        //Cy.json({ elements: JSON });
+        let Options = {
+            name: 'circle',
 
-        fit: true, // whether to fit the viewport to the graph
-        padding: 10, // the padding on fit
-        boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
-        avoidOverlap: true, // prevents node overlap, may overflow boundingBox and radius if not enough space
-        nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
-        spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
-        radius: 100, // the radius of the circle
-        startAngle: 3 / 2 * Math.PI, // where nodes start in radians
-        sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
-        clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
-        sort: (a, b) => a.data('label').localeCompare(b.data('label')), // a sorting function to order the nodes; e.g. function(a, b){ return a.data('weight') - b.data('weight') }
-        animate: false, // whether to transition the node positions
-        animationDuration: 500, // duration of animation in ms if enabled
-        animationEasing: undefined, // easing of animation if enabled
-        animateFilter: function (node, i) { return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
-        ready: undefined, // callback on layoutready
-        stop: undefined, // callback on layoutstop
-        transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
-    };
-
-    Cy.layout(Options).run();
+            fit: true, // whether to fit the viewport to the graph
+            padding: 10, // the padding on fit
+            boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+            avoidOverlap: true, // prevents node overlap, may overflow boundingBox and radius if not enough space
+            nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
+            spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
+            radius: 100, // the radius of the circle
+            startAngle: 3 / 2 * Math.PI, // where nodes start in radians
+            sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
+            clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
+            sort: (a, b) => a.data('label').localeCompare(b.data('label')), // a sorting function to order the nodes; e.g. function(a, b){ return a.data('weight') - b.data('weight') }
+            animate: false, // whether to transition the node positions
+            animationDuration: 500, // duration of animation in ms if enabled
+            animationEasing: undefined, // easing of animation if enabled
+            animateFilter: function (node, i) { return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
+            ready: undefined, // callback on layoutready
+            stop: undefined, // callback on layoutstop
+            transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
+        };
+        Cy.layout(Options).run();
+        ChangeGraphBool = true;
+        SendGraph();
+        ChangeGraphBool = false;
+    }
 }
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -295,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             },
             {
-                selector: "edge[label]",
+                selector: "edge",
                 css: {
                     "label": "data(label)",
                     "color": "#fff",
@@ -364,10 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     Cy.add({
                         data: Data,
-                        position: {
-                            x: Pos.x,
-                            y: Pos.y
-                        }
+                        position: Pos
                     });
                     let Input = CreateInput(ID, Pos, "", true);
                     setInputFilter(Input, (value) => {
@@ -525,8 +535,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });*/
     });
-    Cy.on('add remove', 'node[label]', SendGraph);
-    Cy.on('remove', 'edge[label]', SendGraph);
+    Cy.on('free', 'node', function (event) {
+        //console.log(event.target);
+        //let Data = event.target.data();
+        //let Node = { id: Data.id, label:}
+        let Node = event.target.data();
+        Node.position = { x: event.target.position('x'), y: event.target.position('y') };
+        //console.log(Node)
+        Proxy.recieveNode(JSON.stringify(Node));
+    });
+    Cy.on('add remove', 'node', SendGraph);
+    Cy.on('remove', 'edge', SendGraph);
     Cy.on('mouseover', 'node', () => DivCy.style.cursor = 'pointer');
     Cy.on('mouseout', 'node', () => DivCy.style.cursor = 'default');
 });
