@@ -434,11 +434,9 @@ namespace University_Diploma
                 Panel.FlowDirection = FlowDirection.TopDown;
                 Panel.Dock = DockStyle.Top;
                 Panel.AutoSizeMode = AutoSizeMode.GrowOnly;
-                //Panel.Width = ProbPanel.Width / ProbPanel.ColumnCount;
                 FlowLayoutPanel SmallerPanel = new();
                 SmallerPanel.AutoSize = true;
                 SmallerPanel.AutoSizeMode = AutoSizeMode.GrowOnly;
-                //SmallerPanel.Width = Panel.Width;
                 SmallerPanel.Dock = DockStyle.Top;
                 SmallerPanel.FlowDirection = FlowDirection.LeftToRight;
                 SmallerPanel.BorderStyle = BorderStyle.FixedSingle;
@@ -458,8 +456,6 @@ namespace University_Diploma
                 SmallerPanel.Controls.Add(Prob);
                 EdgeBar Bar = new(Edge, Prob);
                 Bar.AutoSize = true;
-                //Bar.Dock = DockStyle.Fill;
-                //Bar.Width = Panel.Width;
                 Panel.Controls.Add(SmallerPanel);
                 Panel.Controls.Add(Bar);
                 var Event = new EventHandler((sender, args) =>

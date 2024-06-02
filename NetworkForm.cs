@@ -65,16 +65,8 @@ namespace University_Diploma
             try
             {
                 string[] Files = Directory.GetFiles(SessionPath, GraphFileType, SearchOption.TopDirectoryOnly);
-                //MessageBox.Show(Files.Length.ToString());
-                //Console.WriteLine(Files.Length);
                 if (Files.Length != 0)
                 {
-                    /*if (TabControl.InvokeRequired)
-                    {
-                        TabControl.Invoke(new MethodInvoker(delegate {
-                            TabControl.TabPages.Remove(Tab);
-                        }));
-                    }*/
                     if (TabControl.InvokeRequired)
                     {
                         TabControl.Invoke(new MethodInvoker(delegate {
@@ -83,7 +75,6 @@ namespace University_Diploma
                                 var Page = LoadGraph(File);
                                 TabControl.TabPages.Add(Page);
                                 TabControl.SelectedTab = Page;
-                                //Browser.ChangeFrontEndGraph(Pages[LastPage]);
                                 Browser.RecalculateLayout();
                             }
                             TabControl.TabPages.Remove(Tab);
@@ -100,20 +91,10 @@ namespace University_Diploma
                 if (TabControl.InvokeRequired)
                 {
                     TabControl.Invoke(new MethodInvoker(delegate {
-                        //TabControl.TabPages.Add(Tab);
                         TabControl.SelectedTab = Tab;
                     }));
                 }
             }
-            //TabControl.SelectedTab = Tab;
-            /*if (TabControl.InvokeRequired)
-            {
-                TabControl.Invoke(new MethodInvoker(delegate {
-                    //TabControl.SelectedTab = Tab;
-                    TabControl.SelectedTab = LastPage;
-                    //Tab.Controls.Add(Browser);
-                }));
-            }*/
         }
 
         private void Loaded(object sender, EventArgs e)
@@ -126,9 +107,8 @@ namespace University_Diploma
 
         private void CloseForm(object sender, FormClosedEventArgs e)
         {
-            //MessageBox.Show("Closing");
             Directory.CreateDirectory(SessionPath);
-            var DirInfo = new DirectoryInfo(SessionPath/*.Substring(0, SessionPath.Length - 1)*/);
+            var DirInfo = new DirectoryInfo(SessionPath);
             try
             {
                 foreach (var File in DirInfo.EnumerateFiles())
@@ -224,7 +204,6 @@ namespace University_Diploma
                 Title = $"Graph {Index}   ";
                 foreach (TabPage Page in TabControl.TabPages)
                 {
-                    //MessageBox.Show($"PAGE: ({Page.Text.Trim()}) TITLE: ({Title.Trim()})");
                     if (Page.Text.Trim().Equals(Title.Trim()))
                     {
                         Loop = true;
@@ -282,15 +261,6 @@ namespace University_Diploma
             TabPage NewTab = new(GenerateTitle());
             Pages.Add(NewTab, Graph);
             return NewTab;
-            //TabControl.SelectedTab = NewTab;
-            /*if (Browser.InvokeRequired)
-            {
-                Browser.Invoke(new MethodInvoker(delegate {
-                    NewTab.Controls.Add(Browser);
-                    TabControl.TabPages.Add(NewTab);
-                    Browser.ChangeFrontEndGraph(Graph, true);
-                }));
-            }*/
         }
 
         private void ExportGraph(UndirectedGraph <Node, GraphEdge> Graph, string FileName)
@@ -317,9 +287,6 @@ namespace University_Diploma
             TabPage Page = LoadGraph(FileName);
             TabControl.TabPages.Add(Page);
             TabControl.SelectedTab = Page;
-            /*NewTab.Controls.Add(Browser);
-            TabControl.TabPages.Add(NewTab);
-            Browser.ChangeFrontEndGraph(Graph, true);*/
         }
 
         private void ExportClick(object sender, EventArgs e)
@@ -335,7 +302,6 @@ namespace University_Diploma
 
         private void SelectedChanged(object sender, EventArgs e)
         {
-            //Browser.ClearFrontEnd();
             TabControl.SelectedTab.Controls.Add(Browser);
             Browser.ChangeFrontEndGraph(Pages[TabControl.SelectedTab]);
             CalcButton.Enabled = Pages[TabControl.SelectedTab].Edges.Any();
@@ -348,13 +314,6 @@ namespace University_Diploma
             e.DrawBackground();
             using (SolidBrush Brush = new (e.ForeColor))
                 e.Graphics.DrawString(Page.Text + "   ", e.Font, Brush, e.Bounds.X + 3, e.Bounds.Y + 4);
-            /*if (e.State == DrawItemState.Selected)
-            {
-                CloseX = new Rectangle(
-                    e.Bounds.Right - NewSize.Width, e.Bounds.Top, NewSize.Width, NewSize.Height);
-                using SolidBrush Brush = new(Color.Green);
-                e.Graphics.DrawString("x", e.Font, Brush, e.Bounds.Right - NewSize.Width, e.Bounds.Y + 4);
-            }*/
             if (e.State == DrawItemState.Selected)
             {
                 CloseX = new Rectangle(e.Bounds.Right - NewSize.Width - 3,
@@ -373,7 +332,6 @@ namespace University_Diploma
             }
             if (TabControl.TabPages.Count == 0)
             {
-                //Browser.ClearFrontEnd();
                 Tab.Controls.Add(Browser);
                 TabControl.TabPages.Add(Tab);
             }
@@ -449,14 +407,5 @@ namespace University_Diploma
                 Browser.ExecuteScriptAsync(Script);
             }
         }
-
-        /*public static void ClearFrontEnd(this ChromiumWebBrowser Browser)
-        {
-            string Script = "ChangeGraphBool = false; Cy.nodes().remove(); ChangeGraphBool = true;";
-            lock (Browser)
-            {
-                Browser.ExecuteScriptAsync(Script); // Cy.zoom({level: 0.4});
-            }
-        }*/
     }
 }
