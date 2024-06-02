@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Session\**" />
+    <EmbeddedResource Remove="Session\**" />
+    <None Remove="Session\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CefSharp.WinForms" Version="124.3.50" />
     <PackageReference Include="CefSharp.WinForms.NETCore" Version="124.3.50" />
     <PackageReference Include="MathNet.Symbolics" Version="0.25.0" />
@@ -48,10 +54,6 @@
     <None Update="FrontEnd\lodash.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Session\" />
   </ItemGroup>
 
 </Project>

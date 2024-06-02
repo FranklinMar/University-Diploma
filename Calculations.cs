@@ -432,16 +432,22 @@ namespace University_Diploma
                 FlowLayoutPanel Panel = new();
                 Panel.AutoSize = true;
                 Panel.FlowDirection = FlowDirection.TopDown;
+                Panel.Dock = DockStyle.Top;
+                Panel.AutoSizeMode = AutoSizeMode.GrowOnly;
+                //Panel.Width = ProbPanel.Width / ProbPanel.ColumnCount;
                 FlowLayoutPanel SmallerPanel = new();
                 SmallerPanel.AutoSize = true;
+                SmallerPanel.AutoSizeMode = AutoSizeMode.GrowOnly;
+                //SmallerPanel.Width = Panel.Width;
+                SmallerPanel.Dock = DockStyle.Top;
                 SmallerPanel.FlowDirection = FlowDirection.LeftToRight;
                 SmallerPanel.BorderStyle = BorderStyle.FixedSingle;
                 System.Windows.Forms.Label Label = new();
                 Label.AutoSize = true;
-                Label.TextAlign = ContentAlignment.TopCenter;
+                Label.TextAlign = ContentAlignment.MiddleLeft;
                 Label.BackColor = System.Drawing.Color.White;
                 Label.ForeColor = System.Drawing.Color.Black;
-                Label.Font = new Font("Roboto", 11);
+                Label.Font = new Font("Roboto", 13);
                 Label.Text = $"P[{Edge.Source.Label}-{Edge.Target.Label}]";
                 SmallerPanel.Controls.Add(Label);
                 System.Windows.Forms.Label Prob = new();
@@ -452,6 +458,8 @@ namespace University_Diploma
                 SmallerPanel.Controls.Add(Prob);
                 EdgeBar Bar = new(Edge, Prob);
                 Bar.AutoSize = true;
+                //Bar.Dock = DockStyle.Fill;
+                //Bar.Width = Panel.Width;
                 Panel.Controls.Add(SmallerPanel);
                 Panel.Controls.Add(Bar);
                 var Event = new EventHandler((sender, args) =>

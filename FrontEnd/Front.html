@@ -138,6 +138,8 @@ var UnselectAllOfTheSameType = function (type) {
 function CreateInput(ID, Pos, Value, Remove) {
     let WindowWidth = window.innerWidth;
     let WindowHeight = window.innerHeight;
+    Cy.userPanningEnabled(false);
+    Cy.userZoomingEnabled(false);
 
     let Width = 50;
     let Height = 20;
@@ -164,6 +166,8 @@ function CreateInput(ID, Pos, Value, Remove) {
     Input.focus();
     Cy.nodes().lock();
     Input.addEventListener('focusout', function (event) {
+        Cy.userPanningEnabled(true);
+        Cy.userZoomingEnabled(true);
         if (Input.value === "") {
             if (Remove) {
                 Cy.remove(`#${ID}`);
@@ -214,7 +218,7 @@ async function RefreshEdge(NewEdge) {
     }
 }
 
-function RefreshGraph(JSON, Bool) {
+function RefreshGraph(JSON) {
     console.log(JSON);
     Cy.nodes().remove();
     for (let Node of JSON.nodes) {
@@ -230,34 +234,36 @@ function RefreshGraph(JSON, Bool) {
         //console.log(edge);
         Cy.add(edge);
     }
-    if (Bool) {
-        let Options = {
-            name: 'circle',
+}
 
-            fit: true, // whether to fit the viewport to the graph
-            padding: 10, // the padding on fit
-            boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
-            avoidOverlap: true, // prevents node overlap, may overflow boundingBox and radius if not enough space
-            nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
-            spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
-            radius: 100, // the radius of the circle
-            startAngle: 3 / 2 * Math.PI, // where nodes start in radians
-            sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
-            clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
-            sort: (a, b) => a.data('label').localeCompare(b.data('label')), // a sorting function to order the nodes; e.g. function(a, b){ return a.data('weight') - b.data('weight') }
-            animate: false, // whether to transition the node positions
-            animationDuration: 500, // duration of animation in ms if enabled
-            animationEasing: undefined, // easing of animation if enabled
-            animateFilter: function (node, i) { return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
-            ready: undefined, // callback on layoutready
-            stop: undefined, // callback on layoutstop
-            transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
-        };
-        Cy.layout(Options).run();
-        ChangeGraphBool = true;
-        SendGraph();
-        ChangeGraphBool = false;
-    }
+function RecalculateLayout() {
+    let Options = {
+        name: 'circle',
+
+        fit: true, // whether to fit the viewport to the graph
+        padding: 10, // the padding on fit
+        boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+        avoidOverlap: true, // prevents node overlap, may overflow boundingBox and radius if not enough space
+        nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
+        spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that the nodes take up
+        radius: 100, // the radius of the circle
+        startAngle: 3 / 2 * Math.PI, // where nodes start in radians
+        sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
+        clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
+        sort: (a, b) => a.data('label').localeCompare(b.data('label')), // a sorting function to order the nodes; e.g. function(a, b){ return a.data('weight') - b.data('weight') }
+        animate: false, // whether to transition the node positions
+        animationDuration: 500, // duration of animation in ms if enabled
+        animationEasing: undefined, // easing of animation if enabled
+        animateFilter: function (node, i) { return true; }, // a function that determines whether the node should be animated.  All nodes animated by default on animate enabled.  Non-animated nodes are positioned immediately when the layout starts
+        ready: undefined, // callback on layoutready
+        stop: undefined, // callback on layoutstop
+        transform: function (node, position) { return position; } // transform a given node position. Useful for changing flow direction in discrete layouts 
+    };
+    Cy.layout(Options).run();
+    let Temp = ChangeGraphBool;
+    ChangeGraphBool = true;
+    SendGraph();
+    ChangeGraphBool = Temp;
 }
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -320,6 +326,15 @@ document.addEventListener('DOMContentLoaded', function () {
             minNodeSpacing: 100
         }
     });
+    // Convert a rendered position to a model position
+    Cy.toModelPosition = (pos) => {
+        const pan = Cy.pan();
+        const zoom = Cy.zoom();
+        return {
+            x: (pos.x - pan.x) / zoom,
+            y: (pos.y - pan.y) / zoom,
+        };
+    };
     Cy.pan(renderedPosition = { x: 0, y: 0 });
     /*Cy.zoom({
         level: 1,
@@ -367,11 +382,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var Data = {
                         id: ID
                     };
-                    var Pos = event.position || event.cyPosition;
+                    var Pos = event.renderedPosition;// || event.cyPosition;
 
                     Cy.add({
                         data: Data,
-                        position: Pos
+                        renderedPosition: Pos
                     });
                     let Input = CreateInput(ID, Pos, "", true);
                     setInputFilter(Input, (value) => {

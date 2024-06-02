@@ -31,6 +31,8 @@ namespace University_Diploma
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NetworkForm));
             this.Browser = new CefSharp.WinForms.ChromiumWebBrowser();
             this.SidePanel = new System.Windows.Forms.Panel();
             this.AddPageButton = new System.Windows.Forms.Button();
@@ -43,6 +45,7 @@ namespace University_Diploma
             this.CalcButton = new System.Windows.Forms.Button();
             this.TabControl = new System.Windows.Forms.TabControl();
             this.Tab = new System.Windows.Forms.TabPage();
+            this.ImagesList = new System.Windows.Forms.ImageList(this.components);
             this.SidePanel.SuspendLayout();
             this.LabelPanel.SuspendLayout();
             this.TabControl.SuspendLayout();
@@ -200,6 +203,13 @@ namespace University_Diploma
             this.Tab.Text = "Graph 1   ";
             this.Tab.UseVisualStyleBackColor = true;
             // 
+            // ImagesList
+            // 
+            this.ImagesList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.ImagesList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("ImagesList.ImageStream")));
+            this.ImagesList.TransparentColor = System.Drawing.Color.Transparent;
+            this.ImagesList.Images.SetKeyName(0, "Close.png");
+            // 
             // NetworkForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -236,5 +246,6 @@ namespace University_Diploma
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button AddPageButton;
         private System.Windows.Forms.Button ExportButton;
+        private System.Windows.Forms.ImageList ImagesList;
     }
 }

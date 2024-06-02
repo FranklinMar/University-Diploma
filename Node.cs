@@ -43,8 +43,9 @@ namespace University_Diploma
             {
                 return -1;
             }
-            Node Node = obj as Node;
-            return Label.CompareTo(Node.Label);
+            return 0;
+            //Node Node = obj as Node;
+            //return Label.CompareTo(Node.Label);
             /*
             int Result = ID.CompareTo(Node.ID);
             if (Result != 0)
