@@ -97,7 +97,7 @@ namespace University_Diploma
         {
             GraphHandler = Handler;
             InitializeComponent();
-            ModeBox.Items.AddRange(Modes.Keys.ToArray());
+            ModeBox.Items.AddRange(Modes.Keys.ToArray()); 
         }
 
         private void SetUpPlot()
@@ -386,7 +386,19 @@ namespace University_Diploma
             {
                 Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
             }
-            return Result.Evaluate(Values).RealValue;
+            double product;
+            double result = 1;
+            foreach (var Path in MinPaths)
+            {
+                product = 1;
+                foreach (GraphEdge Edge in Path)
+                {
+                    product *= Edge.Probability;
+                }
+                result *= (1 - product);
+            }
+            result = 1 - result;
+            return result;
         }
 
         public double EzariProshanLowerLimit(out string expression)
@@ -416,7 +428,18 @@ namespace University_Diploma
             {
                 Values.Add(Pair.Value.VariableName, Pair.Key.Probability);
             }
-            return Result.Evaluate(Values).RealValue;
+            double product;
+            double result = 1;
+            foreach (var Path in MinPaths)
+            {
+                product = 1;
+                foreach (GraphEdge Edge in Path)
+                {
+                    product *= (1 - Edge.Probability);
+                }
+                result *= (1 - product);
+            }
+            return result;
         }
 
         private void Loaded(object sender, EventArgs e)

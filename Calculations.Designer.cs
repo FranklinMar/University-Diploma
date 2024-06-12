@@ -194,7 +194,7 @@ namespace University_Diploma
             this.UpperResult.Location = new System.Drawing.Point(306, 691);
             this.UpperResult.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.UpperResult.Name = "UpperResult";
-            this.UpperResult.Size = new System.Drawing.Size(46, 21);
+            this.UpperResult.Size = new System.Drawing.Size(58, 21);
             this.UpperResult.TabIndex = 11;
             this.UpperResult.Text = "1.00";
             // 
@@ -307,10 +307,10 @@ namespace University_Diploma
             // PreciseResult
             // 
             this.PreciseResult.Font = new System.Drawing.Font("Roboto", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PreciseResult.Location = new System.Drawing.Point(185, 691);
+            this.PreciseResult.Location = new System.Drawing.Point(176, 691);
             this.PreciseResult.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.PreciseResult.Name = "PreciseResult";
-            this.PreciseResult.Size = new System.Drawing.Size(46, 21);
+            this.PreciseResult.Size = new System.Drawing.Size(59, 21);
             this.PreciseResult.TabIndex = 21;
             this.PreciseResult.Text = "0.00";
             // 

@@ -272,18 +272,6 @@ document.addEventListener('DOMContentLoaded', function () {
         container: DivCy, // Container to render in
 
         elements: [ // List of graph elements to start with
-            /*{ // Node A
-                data: { id: Source, label: 'Front Pole' }, //, pole: true }
-                classes: ['outline', 'top-left']
-            },
-            { // Node B
-                data: { id: Target, label: 'Back Pole' }, //, pole: true }
-                classes: ['outline', 'top-left']
-            },
-            { // Edge AB
-                data: { id: crypto.randomUUID(), source: Source, target: Target, label: 'hello' },
-                classes: 'top-left'
-            }*/
         ],
         style: [ // The stylesheet for the graph
             {
@@ -473,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     let Input = CreateInput(target.data('id'), target.midpoint(), target.data('label'));
                     Input.type = "number";
                     Input.step = "0.01"
-                    setInputFilter(Input, (value) => (value <= 1 && value >= 0), "Value must be in range from 0 to 1");
+                    setInputFilter(Input, (value) => (value <= 1 && value >= 0) || value.startsWith("0.") , "Value must be in range from 0 to 1");
                     setInputFilter(Input, (value) => (value !== "" && value !== null & value !== undefined), "Value must not be empty");
 
                     //ContextMenu.showMenuItem('undo-last-remove');

@@ -37,7 +37,7 @@ namespace University_Diploma
 
         public NetworkForm()
         {
-            AllocateConsole();
+            //AllocateConsole();
             InitializeComponent();
             Proxy = new(OnGraphRecieved, OnNodeRecieved);
             string Domain = "modelling";
@@ -60,8 +60,7 @@ namespace University_Diploma
 
         private void PageLoaded(object sender, FrameLoadEndEventArgs e)
         {
-            Browser.ShowDevTools();
-            
+            //Browser.ShowDevTools();
             try
             {
                 string[] Files = Directory.GetFiles(SessionPath, GraphFileType, SearchOption.TopDirectoryOnly);

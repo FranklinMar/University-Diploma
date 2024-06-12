@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace University_Diploma
 {
@@ -18,7 +13,7 @@ namespace University_Diploma
             Maximum = 100;
             Minimum = 0;
             TickFrequency = 1;
-            LargeChange = 5;
+            LargeChange = 1;
             SmallChange = 1;
             Value = (int)(Edge.Probability * 100);
             Label.Text = string.Format("{0:N2}", Edge.Probability).Replace(',', '.');
